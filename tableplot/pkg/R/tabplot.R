@@ -18,7 +18,7 @@
 # $Id: textplot.R 1883 2012-03-25 00:59:31Z braverock $
 
 # Example using format.df as a pre-processor
-# > textplot(format.df(t(y), na.blanks=F,cdec=c(3,3,1)), row.valign="center", wrap.rownames=20, wrap.colnames=10, cex=1)
+# > textplot(format.df(t(y), na.blanks=F,cdec=c(3,3,1)), valign.row="center", wrap.rownames=20, wrap.colnames=10, cex=1)
 # > dd <- data.frame(first.col=c(first.row=1,b=2,c=3), second.row=4:6, '3rd'=6:8, '4th'=1/(7:9))
 # > textplot(dd, font.rownames=1, font.colnames=3, col.colnames='limegreen', col.data=matrix(1:6,ncol=2), corner='K', col.bg='pink', bg.data='lightgreen', bg.row='lightblue', debug.align=T, cmar=0.2, bdo=2, bdi=1)
 
@@ -67,9 +67,9 @@
 #' respectively.  Either may be specified as a scalar or a vector of
 #' appropriate length.
 #' @param max.cex Sets the largest text size as a ceiling
-#' @param row.valign Sets the vertical alignment of the row as "top", "bottom",
+#' @param valign.row Sets the vertical alignment of the row as "top", "bottom",
 #' or (default) "center".
-#' @param heading.valign Sets the vertical alignment of the heading as "top",
+#' @param valign.heading Sets the vertical alignment of the heading as "top",
 #' (default) "bottom", or "center".
 #' @param wrap If TRUE (default), will wrap column names and rownames
 #' @param wrap.colnames The number of characters after which column labels will
@@ -110,7 +110,7 @@
 #' # require("Hmisc")
 #'   result = t(table.CalendarReturns(managers[,1:8]))[-1:-12,]
 #'
-#' #  textplot(Hmisc::format.df(result, na.blank=TRUE, numeric.dollar=FALSE, cdec=rep(1,dim(result)[2])), rmar = 0.8, cmar = 1,  max.cex=.9, halign = "center", valign = "top", row.valign="center", wrap.rownames=20, wrap.colnames=10, col.rownames=c("red", rep("darkgray",5), rep("orange",2)), mar = c(0,0,4,0)+0.1)
+#' #  textplot(Hmisc::format.df(result, na.blank=TRUE, numeric.dollar=FALSE, cdec=rep(1,dim(result)[2])), rmar = 0.8, cmar = 1,  max.cex=.9, halign = "center", valign = "top", valign.row="center", wrap.rownames=20, wrap.colnames=10, col.rownames=c("red", rep("darkgray",5), rep("orange",2)), mar = c(0,0,4,0)+0.1)
 #'
 #' # title(main="Calendar Returns")
 #'
@@ -120,8 +120,8 @@ textplot <- function(object, halign="center", valign="center", cex,
                             show.rownames=TRUE, show.colnames=TRUE,
                             font.rownames=2, font.colnames=2,
                             hadj=1, vadj=NULL,
-                            row.valign="center",
-                            heading.valign = "bottom",
+                            valign.row="center",
+                            valign.heading = "bottom",
                             mar= c(0,0,0,0)+0.1,
                             col.data=par("col"),
                             col.rownames=par("col"),
@@ -140,8 +140,8 @@ textplot.default <- function(object,
                             show.rownames, show.colnames,
                             font.rownames, font.colnames,
                             hadj, vadj,
-                            row.valign,
-                            heading.valign,
+                            valign.row,
+                            valign.heading,
                             mar,
                             col.data,
                             col.rownames,
@@ -171,8 +171,8 @@ textplot.data.frame <- function(object,
                             show.rownames=TRUE, show.colnames=TRUE,
                             font.rownames=2, font.colnames=2,
                             hadj=1, vadj=NULL,
-                            row.valign="center",
-                            heading.valign = "bottom",
+                            valign.row="center",
+                            valign.heading = "bottom",
                             mar= c(0,0,0,0)+0.1,
                             col.data=par("col"),
                             col.rownames=par("col"),
@@ -185,8 +185,8 @@ textplot.data.frame <- function(object,
                             show.rownames, show.colnames,
                             font.rownames, font.colnames,
                             hadj, vadj,
-                            row.valign,
-                            heading.valign,
+                            valign.row,
+                            valign.heading,
                             mar,
                             col.data,
                             col.rownames,
@@ -201,11 +201,13 @@ textplot.matrix <- function(object,
                             valign=c("center","top","bottom"),
                             cex=NULL, max.cex = 1, cmar=2, rmar=0.5,
                             object.fit=NULL,
-                            show.rownames=TRUE, show.colnames=TRUE,
-                            font.rownames=2, font.colnames=2,
+                            show.rownames=TRUE,
+                            show.colnames=TRUE,
+                            font.rownames=2,
+                            font.colnames=2,
                             hadj=1, vadj=NULL,
-                            row.valign="center",
-                            heading.valign = "center",
+                            valign.row="center",
+                            valign.heading = "center",
                             mar= c(0,0,0,0)+0.1, # original settings: c(1,1,4,1)+0.1,
                             # mar: a numerical vector of the form c(bottom, left, top, right) which
                             # gives the number of lines of margin to be specified on the four sides
@@ -256,6 +258,9 @@ textplot.matrix <- function(object,
                             lines.caption=length(caption),
                             caption=NULL,
                             bg.caption=bg.corner,
+                            font.caption=font.rownames,
+                            hadj.caption=0.5,
+                            valign.heading=c("center","top","bottom"),
                             ... )
 {
     # @todo: add methods c("wrap", "abbreviate", "both") for handling long column and row names
@@ -716,7 +721,7 @@ textplot.matrix <- function(object,
 
     # Draw cell contents
     w.wid <- strwidth("W",cex=cex)
-    xpos<-x
+    xpos <- x
     for(i in 1:ncol(object)) {
         # format the header separately here
 
@@ -743,18 +748,15 @@ textplot.matrix <- function(object,
 
             if ( show.colnames && j==1 && object[j,i]!=''){
                 # create the header
-                if (heading.valign=="top") { # This works for valign "top" but not for "centered" or "bottom"
+                if (valign.heading=="top") { # This works for valign "top" but not for "centered" or "bottom"
                     ypos = y - strheight("(",cex=cex) * rmar/2
                     vadj = 1
                 }
-                if (heading.valign=="bottom") {
-                    # fix bug in alignment...
-                    # ypos = y - rowheight[1] + strheight("(",cex=cex) * (1 + rmar)
+                if (valign.heading=="bottom") {
                     ypos = y - rowheight[1] + strheight("(",cex=cex) * rmar/2
                     vadj = 0
                 }
-                if (heading.valign=="center") {
-                    # fix bug in alignment...
+                if (valign.heading=="center") {
                     ypos = y - rowheight[1]/2 # + strheight("(",cex=cex) * (1 + rmar)/2
                     vadj = .5
                 }
@@ -764,20 +766,15 @@ textplot.matrix <- function(object,
                      font=font.data[j,i], col=col.data[j,i], ... )
             }
             else if (object[j,i]!='') {
-                if (row.valign=="top") {
-                    # fix bug in alignment...
-                    # ypos = y - sum(rowheight[0:(j-1)])
+                if (valign.row=="top") {
                     ypos = y - sum(rowheight[0:(j-1)]) - strheight("(",cex=cex) * rmar/2
                     vadj = 1
                 }
-                if (row.valign=="bottom") {
-                    # fix bug in alignment...
-                    # ypos = y - sum(rowheight[1:(j)]) + strheight("(",cex=cex) * (1 + rmar)
+                if (valign.row=="bottom") {
                     ypos = y - sum(rowheight[1:(j)]) + strheight("(",cex=cex) * rmar/2
                     vadj = 0
                 }
-                if (row.valign=="center") {
-                    # fix bug in alignment...
+                if (valign.row=="center") {
                     ypos = y - (sum(rowheight[1:(j)]) + sum(rowheight[0:(j-1)]))/2 # + strheight("(",cex=cex) * (1 + rmar)/2
                     vadj = .5
                 }
@@ -788,6 +785,45 @@ textplot.matrix <- function(object,
         }
         xpos <- xpos + colwidth[i]
 
+    }
+    font.caption <- font.
+    if (caption.height != 0) {
+        # for the caption, copy the code for cell j,i
+        cex.ji <- cex
+        cmar.ji <- cmar
+        if (cex.fit) {
+            # if we are having trouble fitting, shrink the font, and use a different cmar (usu 0)
+            width.ji <- max(strwidth(caption, cex=cex, font=font.caption))
+            if (width.ji+cmar*w.wid > width & width.ji > 0 & width > cmar*w.wid) {
+                cex.ji <- cex * min(1, (width - cex.fit.cmar*w.wid) / width.ji)
+                if (width.ji+cmar/2*w.wid > width)
+                    cmar.ji <- cex.fit.cmar
+            }
+        }
+        if (hadj.caption < 0.25)
+            xoff <- w.wid * cmar.ji/2
+        else if (hadj.caption > 0.75)
+            xoff <- width - w.wid * cmar.ji/2
+        else
+            xoff <- width/2
+
+        stop('working here on caption')
+        if (valign.heading=="top") { # This works for valign "top" but not for "centered" or "bottom"
+            ypos = y - strheight("(",cex=cex) * rmar/2
+            vadj = 1
+        }
+        if (valign.heading=="bottom") {
+            ypos = y - rowheight[1] + strheight("(",cex=cex) * rmar/2
+            vadj = 0
+        }
+        if (valign.heading=="center") {
+            ypos = y - rowheight[1]/2 # + strheight("(",cex=cex) * (1 + rmar)/2
+            vadj = .5
+        }
+        if (debug.align)
+            points(xpos+xoff, ypos)
+        text(xpos+xoff, ypos, caption, adj=c(hadj.caption,vadj), cex=cex.ji,
+             font=font.caption, col=col.caption, ... )
     }
 
     par(opar)
@@ -807,8 +843,8 @@ textplot.character <- function (object,
                                 max.cex = 1, cmar=2, rmar=0.5,
                                 show.rownames=TRUE, show.colnames=TRUE,
                                 hadj=1, vadj=NULL,
-                                row.valign="center",
-                                heading.valign = "bottom",
+                                valign.row="center",
+                                valign.heading = "bottom",
                                 mar= c(0,0,3,0)+0.1,
                                 col.data=par("col"),
                                 col.rownames=par("col"),
