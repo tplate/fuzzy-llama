@@ -1,0 +1,18 @@
+fuzzy llama is my repo on github (tplate@acm.org)
+
+hints from http://stackoverflow.com/questions/8775850/how-to-add-files-and-folder-to-github-repo
+
+git status
+git add ...
+git commit -m 'message'
+git pull origin master # to pull changes down from repo
+git push -u origin master
+
+git pull origin master
+is a combination of
+git fetch
+git merge
+
+git rm --cached
+
+see http://gitimmersion.com/ for help
