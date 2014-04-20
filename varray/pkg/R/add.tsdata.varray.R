@@ -7,7 +7,6 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     # have ... args to satisfy the generic function
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
-    non.null <- function(x, y) if (!is.null(x)) x else y
     # TODO:
     #   Force use of umode
     #
