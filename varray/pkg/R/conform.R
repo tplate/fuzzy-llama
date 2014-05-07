@@ -27,9 +27,9 @@ conform.default <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"
         # excess.ok is irrelevant here -- no!
         if (nDotArgs==0) {
             if (do.all=="intersect")
-                z.d <- do.call("intersect.dimnames", c(x, list(along=along)))
+                z.d <- intersect.dimnames(x, along=along)
             else
-                z.d <- do.call("union.dimnames", c(x, list(along=along)))
+                z.d <- union.dimnames(x, along=along)
         } else if (nDotArgs==1) {
             if (is.dimnames(..1))
                 z.d <- ..1
@@ -135,7 +135,7 @@ conform.default <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"
     }
 }
 
-# the *.list method doesn't get dispatched by S3, fold this into the default
+# the *.list method doesn't get dispatched by S3 in S-PLUS, fold this into the default
 conform.list <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"), along=NULL, excess.ok=TRUE, missing.ok=TRUE) {
     do.all <- match.arg(do.all)
     nDotArgs <- length(match.call(expand.dots=FALSE)$...)
@@ -143,9 +143,9 @@ conform.list <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"), 
         stop("x must be a list")
     if (nDotArgs==0) {
         if (do.all=='intersect')
-            z.d <- do.call("intersect.dimnames", c(x, list(along=along)))
+            z.d <- intersect.dimnames(x, along=along)
         else
-            z.d <- do.call("union.dimnames", c(x, list(along=along)))
+            z.d <- union.dimnames(x, along=along)
     } else if (nDotArgs==1) {
         if (is.dimnames(..1))
             z.d <- ..1
@@ -274,214 +274,3 @@ conform.data.frame <- function(x, ..., fill=NA, do.all=c("no", "union", "interse
     return(x)
 }
 
-# compute the union of dimnames
-# union.dimnames(list(c("A","C"),c("b","c","d")), list(c("A","B"),c("a","c","d","e")))
-# union.dimnames(list(c("A","C"),c("b","c","d")), list(c("A","B"),c("a","c","d","e")), list(c("A","D"),c("f")))
-
-
-union.dimnames <- function(..., along=NULL) {
-    get.dimnames <- function(x) {
-        if (is.dimnames(x))
-            x
-        else if (length(dim(x))) # instead of is.array(), which doesn't work for virtual arrays
-            non.null(dimnames(x), rep(list(character(0)), length(dim(x))))
-        else if (!is.null(names(x)))
-            list(names(x))
-        else
-            NULL
-    }
-    nDotArgs <- nargs() - !missing(along)
-    # make x be the first object with dimnames, and args be a list of the remainder
-    if (is.list(..1) && !is.data.frame(..1) && !is.dimnames(..1) && !is.virtual.array(..1)) {
-        x <- get.dimnames(..1[[1]])
-        args <- c(..1[-1], list(...)[-1])
-        args.names <- paste("obj", seq(along=args), sep="")
-    } else {
-        x <- get.dimnames(..1)
-        args <- list(...)[-1]
-        if (length(args)) {
-            args.names <- names(args)
-            if (is.null(args.names) || any(args.names == ""))
-                args.names <- mapply(non.null(args.names, character(length(args))),
-                                     match.call(expand.dots=FALSE)$...[-1],
-                                     FUN=function(x, y) if (x!="") return(x) else return(deparse(y)))
-        }
-    }
-    if (!is.dimnames(x))
-        stop("first argument is not a dimnames object and has no dimnames")
-    for (i in seq(along=args)) {
-        y <- get.dimnames(args[[i]])
-        if (!is.dimnames(y))
-            stop(args.names[i], "is not a dimnames object and has no dimnames")
-        if (is.null(along)) {
-            if (length(x) != length(y))
-                stop(args.names[i], " has ", length(y), " dimensions but ", args.names[1], " has ", length(x))
-            for (j in seq(along=x)) {
-                dd <- union.ordered(x[[j]], y[[j]])
-                if (!is.null(dd))
-                    x[[j]] <- dd
-            }
-        } else {
-            if (length(x) < max(along) || length(y) < max(along))
-                stop(args.names[i], " has ", length(y), " dimensions and x has ", length(x), " but along=", paste(along, collaspe=", "))
-            for (j in along) {
-                dd <- union.ordered(x[[j]], y[[j]])
-                if (!is.null(dd))
-                    x[[j]] <- dd
-            }
-        }
-    }
-    x
-}
-
-# compute the intersect of dimnames
-# intersect.dimnames(list(c("A","C"),c("b","c","d")), list(c("A","B"),c("a","c","d","e")))
-# intersect.dimnames(list(c("A","C"),c("b","c","d")), list(c("A","B"),c("a","c","d","e")), list(c("A","D"),c("f")))
-
-
-intersect.dimnames <- function(..., along=NULL) {
-    get.dimnames <- function(x) {
-        if (is.dimnames(x))
-            x
-        else if (length(dim(x))) # instead of is.array(), which doesn't work for virtual arrays
-            non.null(dimnames(x), rep(list(character(0)), length(dim(x))))
-        else if (!is.null(names(x)))
-            list(names(x))
-        else
-            NULL
-    }
-    nDotArgs <- nargs() - !missing(along)
-    # make x be the first object with dimnames, and args be a list of the remainder
-    if (is.list(..1) && !is.data.frame(..1) && !is.dimnames(..1) && !is.virtual.array(..1)) {
-        x <- get.dimnames(..1[[1]])
-        args <- c(..1[-1], list(...)[-1])
-        args.names <- paste("obj", seq(along=args), sep="")
-    } else {
-        x <- get.dimnames(..1)
-        args <- list(...)[-1]
-        if (length(args)) {
-            args.names <- names(args)
-            if (is.null(args.names) || any(args.names == ""))
-                args.names <- mapply(non.null(args.names, character(length(args))),
-                                     match.call(expand.dots=FALSE)$...[-1],
-                                     FUN=function(x, y) if (x!="") return(x) else return(deparse(y)))
-        }
-    }
-    if (!is.dimnames(x))
-        stop("first argument is not a dimnames object and has no dimnames")
-    for (i in seq(along=args)) {
-        y <- get.dimnames(args[[i]])
-        if (!is.dimnames(y))
-            stop(args.names[i], "is not a dimnames object and has no dimnames")
-        if (is.null(along)) {
-            if (length(x) != length(y))
-                stop(args.names[i], " has ", length(y), " dimensions but x has ", length(x))
-            for (i in seq(along=x))
-                x[[i]] <- intersect(x[[i]], y[[i]])
-        } else {
-            if (length(x) < max(along) || length(y) < max(along))
-                stop(args.names[i], " has ", length(y), " dimensions and x has ", length(x), " but along=", paste(along, collaspe=", "))
-            for (i in along)
-                x[[i]] <- intersect(x[[i]], y[[i]])
-        }
-    }
-    x
-}
-
-# Compute the union, and keep the symbols in the same order as in x and y
-# (provided that x and y are consistently ordered).
-
-# Differs from union() in elements of y that are not in x can
-# still appear before elements of x in the output.
-
-# union.ordered(c("a","b","d","g"),c("a","c","e","g"))
-# union.ordered(c("c","b"), c("a","c","d"))
-
-union.ordered <- function(x, y) {
-    if (is.null(x)) return(y)
-    else if (is.null(y)) return(x)
-    out.of.order <- any(x[-1] < x[-length(x)]) || any(y[-1] < y[-length(y)])
-    if (!isTRUE(out.of.order)) {
-        return(sort(union(x, y), na.last=TRUE))
-    } else {
-        # check if x and y are ordered consistently
-        z <- intersect(x, y)
-        z <- z[!is.na(z)]
-        consistently.ordered <- all(diff(match(z, y))>=0) && all(diff(match(z, x))>=0)
-        w <- union(x, y)
-        if (!consistently.ordered)
-            return(w)
-        if (any(dup <- duplicated(x)))
-            x <- x[!dup]
-        if (any(dup <- duplicated(y)))
-            y <- y[!dup]
-        x.both <- is.element(x, z)
-        y.both <- is.element(y, z)
-        i <- 1 # count along x
-        j <- 1 # count along y
-        k <- 1 # count along w
-        # transfer elts from x and y to w
-        while (k <= length(w)) {
-            while (!x.both[i] && i<=length(x)) {
-                w[k] <- x[i]
-                k <- k+1
-                i <- i+1
-            }
-            while (!y.both[j] && j<=length(y)) {
-                w[k] <- y[j]
-                k <- k+1
-                j <- j+1
-            }
-            if (i<=length(x)) {
-                w[k] <- x[i]
-                k <- k+1
-                i <- i+1
-                j <- j+1
-            }
-        }
-        return(w)
-    }
-}
-
-is.dimnames <- function(x) {
-    return(is.list(x) && all(is.element(set=c("NULL", "character"), sapply(x, class))) && all(sapply(x, function(x) is.null(names(x)))))
-}
-
-non.null <- function(x, y) if (is.null(x)) y else x
-
-# pick some initial elements from a vector
-some.examples <- function(x, max.examples=3, collapse=NULL,
-                          quote=FALSE, ellipsis=FALSE, total=FALSE, final=FALSE)
-{
-    len <- length(x)
-    # don't return something like 'A, B, ..., D' for 'A, B, C, D'
-    if (len == max.examples+1 && ellipsis)
-        max.examples <- len
-    xc <- as.character(x)
-    if (final)
-        xc <- xc[unique(c(seq(len=min(len, max.examples-1)), len))]
-    else
-        xc <- xc[seq(len=min(len, max.examples))]
-    if (is.logical(quote) && quote)
-        quote <- "\""
-    if (is.logical(collapse))
-        if (collapse)
-            collapse <- ", "
-        else
-            collapse <- NULL
-    if (is.character(quote))
-        xc <- paste(quote, xc, quote, sep="")
-    if (ellipsis && len > max.examples)
-        if (final)
-            xc <- c(head(xc, -1), "...", tail(xc, 1))
-        else
-            xc <- c(xc, "...")
-    if (!is.null(collapse))
-        xc <- paste(xc, collapse=collapse)
-    if (total && len > max.examples)
-        if (!is.null(collapse))
-            xc <- paste(xc, " (", len, " total)", sep="")
-        else
-            xc <- c(xc, paste("(", len, " total)", sep=""))
-    xc
-}
