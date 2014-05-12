@@ -4,6 +4,7 @@
 # History files
 .Rhistory
 .Rincr_history
+.Rapp_history
 
 # Example code in package build process
 *-Ex.R
