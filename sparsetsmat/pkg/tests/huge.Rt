@@ -1,0 +1,49 @@
+> # construct a large example with Date indices
+> set.seed(1)
+> n <- 2537
+> m <- 12119
+> m5.mat <- locf(matrix(replace(rep(as.character(NA), n*m), sample(n*m, 3*n), sample(c(letters, LETTERS), 3*n, rep=TRUE)), nrow=n, ncol=m, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=n, by='days')), paste('V', seq(m), sep=''))))
+> m5.tsm <- sparsetsmat(m5.mat)
+> head(as.data.frame(m5.tsm))
+        date id value
+1 2001-09-18 V2     L
+2 2002-04-21 V2     r
+3 2003-05-27 V2     E
+4 2003-02-12 V3     l
+5 2002-11-12 V4     S
+6 2001-08-07 V5     h
+> 
+> str(m5.tsm)
+List of 7
+ $ date       : Date[1:3041], format: "2001-09-18" "2002-04-21" ...
+ $ value      : chr [1:3041] "L" "r" "E" "l" ...
+ $ id         : chr [1:2048] "V1" "V2" "V3" "V4" ...
+ $ id.idx     : num [1:2049] 1 1 4 5 6 7 10 12 14 15 ...
+ $ all.dates  : Date[1:1024], format: "2001-01-01" "2001-01-02" ...
+ $ df.colnames: chr [1:3] "date" "id" "value"
+ $ backfill   : logi FALSE
+ - attr(*, "class")= chr "sparsetsmat"
+> dim(m5.tsm)
+[1] 23 17
+> dim(as.matrix(m5.tsm))
+[1] 23 17
+> m5.tsm[258:263,1:6]
+           V1 V2  V3 V4 V5  V6 
+2001-09-15 NA NA  NA NA "h" "q"
+2001-09-16 NA NA  NA NA "h" "q"
+2001-09-17 NA NA  NA NA "h" "q"
+2001-09-18 NA "L" NA NA "h" "q"
+2001-09-19 NA "L" NA NA "h" "q"
+2001-09-20 NA "L" NA NA "h" "q"
+>
+> all.equal(m5.mat, as.matrix(m5.tsm))
+[1] TRUE
+> all.equal(m5.tsm[cbind(c(row(m5.mat)), c(col(m5.mat)))], c(m5.mat))
+[1] TRUE
+> all.equal(m5.tsm[data.frame(c(row(m5.mat)), c(col(m5.mat)))], c(m5.mat))
+[1] TRUE
+> all.equal(m5.tsm[data.frame(rownames(m5.tsm)[c(row(m5.mat))], c(col(m5.mat)))], c(m5.mat))
+[1] TRUE
+> all.equal(m5.tsm[data.frame(m5.tsm$all.dates[c(row(m5.mat))], c(col(m5.mat)))], c(m5.mat))
+[1] TRUE
+> 

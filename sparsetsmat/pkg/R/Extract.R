@@ -1,8 +1,35 @@
-#' @details Rules for interpreting i:
-#' If the time index is numeric, then i is a value.
-#' If the time index is a date, then if i is numeric, it is an index, else if i is character or date, it is a value.
-#' The first column in a matrix index (can be a dataframe) is interpreted in the same way.
+#' Extract an ordinary sub-matrix or value from a sparsetsmat object.
+#'
+#' @param x
+#' @param i
+#' @param j
+#'
+#' @details
+#'
+#' Rules for interpreting i: \itemize{
+#'
+#'    \item If the time index is numeric, then i is
+#' interpreted as a value, i.e., i is not interpreted as a
+#' positional.  E.g., with a numeric time index, an i value
+#' of 17 does not refer to the 17th row, rather it refers to
+#' the value 17.  Similarly, with a numeric time index, an i
+#' value of -3 does not result in dropping the 3rd row of
+#' the matrix, rather it refers to a time value of -3 (and
+#' negative numeric time indices can be stored).
+#'
+#'    \item If the time index is a date, then if i is
+#' numeric, it is an index (positional), else if i is
+#' character or date, it is a value.  When the time index is
+#' a date, a negative i value has the conventional R
+#' interpretation as dropping that row from the result.
+#'
+#'    \item The first column in a matrix index (can be a
+#' dataframe) is interpreted in the same way.
+#' }
 '[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE) {
+    if (length(list(...)))
+        stop('unexpected ... args')
+    nIdxs <- nargs() - 1 - (!missing(drop))
     mat.ind <- FALSE
     if (missing(i))
         i <- x$all.dates
@@ -17,6 +44,11 @@
         j <- i[,2,drop=TRUE]
         i <- i[,1,drop=TRUE]
         mat.ind <- TRUE
+        if (nIdxs != 1)
+            stop('require just one index with matrix indexing')
+    } else {
+        if (nIdxs != 2 & nIdxs != 0)
+            stop('require zero or both indices (i & j)')
     }
     if (missing(j))
         j <- seq(along=x$id)
@@ -45,7 +77,7 @@
             # handle -ve indices
             if (any(i > 0))
                 stop('cannot mix +ve and -ve numbers in numeric i index')
-            i <- seq(nrow(length(x$all.dates)))[i]
+            i <- seq(length(x$all.dates))[i]
         }
         if (any(!is.na(i) & (i < 1 | i > length(x$all.dates))))
             stop('numeric i index values out of range')

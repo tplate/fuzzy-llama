@@ -1,3 +1,4 @@
+* fix usage of all.ids component, note in comments that x$id may not be sorted
 * DONE: add 'default' value to structure to use earlier (backfill T/F)
 * allow multiple value columns (like a 3-d data frame)
 * DONE: conversion from non-sparse matrix
@@ -8,11 +9,12 @@
 * inserting single row of data
 * inserting multiple row of data
 * inserting records of data
-* setting individual rows (use NULL or FALSE to remove)
+* setting individual rows -- go via data.frame representation
 * DONE: optional colnames argument for original constructor
 * DONE: i,j subsetting
 * DONE: matrix subsetting
-* figure out j behavior for NA and out-of-range indices
+* figure out j behavior for NA and out-of-range j indices
 * DONE: disallow missing rownames (allowed in case of numeric dates on x)
-* test for medium size matrix
-* test for large size matrix
+* DONE: test for medium size matrix
+* DONE: test for large size matrix
+* get tests working
