@@ -1,5 +1,5 @@
-as.data.frame.sparsetsmat <- function(tsm) {
-    df <- list(tsm$date, rep(tsm$id, diff(tsm$id.idx)), tsm$value)
-    names(df) <- tsm$df.colnames
+as.data.frame.sparsetsmat <- function(x, ...) {
+    df <- list(x$date, rep(x$id, x$id.noc), x$value)
+    names(df) <- x$df.colnames
     return(as.data.frame(df, row.names=NULL))
 }

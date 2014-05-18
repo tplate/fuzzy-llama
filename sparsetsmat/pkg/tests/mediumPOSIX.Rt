@@ -1,8 +1,8 @@
 > options(error=function(x) NULL)
 > set.seed(1)
-> m3.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 23*17), sample(23*17, 52), c(letters, LETTERS)), nrow=23, ncol=17, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=23, by='days')), paste('V', 1:17, sep=''))))
-> m3.tsm <- sparsetsmat(m3.mat)
-> as.data.frame(m3.tsm)
+> m6.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 23*17), sample(23*17, 52), c(letters, LETTERS)), nrow=23, ncol=17, dimnames=list(as.character(seq(as.POSIXct('2001-01-01'), len=23, by='days')), paste('V', 1:17, sep=''))))
+> m6.tsm <- sparsetsmat(m6.mat)
+> as.data.frame(m6.tsm)
          date  id value
 1  2001-01-05  V1     A
 2  2001-01-09  V1     U
@@ -57,7 +57,7 @@
 51 2001-01-19 V17     k
 52 2001-01-22 V17     n
 > 
-> str(m3.tsm)
+> str(m6.tsm)
 List of 9
  $ date       : Date[1:52], format: "2001-01-05" "2001-01-09" ...
  $ value      : chr [1:52] "A" "U" "j" "L" ...
@@ -69,18 +69,18 @@ List of 9
  $ backfill   : logi FALSE
  $ sort.ids   : logi FALSE
  - attr(*, "class")= chr "sparsetsmat"
-> dim(m3.tsm)
+> dim(m6.tsm)
 [1] 23 17
-> dim(as.matrix(m3.tsm))
+> dim(as.matrix(m6.tsm))
 [1] 23 17
-> m3.tsm[3:7,1:6]
+> m6.tsm[3:7,1:6]
            V1  V2  V3  V4 V5  V6
 2001-01-03 NA  "j" "x" NA NA  NA
 2001-01-04 NA  "j" "x" NA NA  NA
 2001-01-05 "A" "j" "x" NA NA  NA
 2001-01-06 "A" "j" "x" NA NA  NA
 2001-01-07 "A" "j" "x" NA "y" NA
-> m3.tsm[5:11,1:6]
+> m6.tsm[5:11,1:6]
            V1  V2  V3  V4  V5  V6 
 2001-01-05 "A" "j" "x" NA  NA  NA 
 2001-01-06 "A" "j" "x" NA  NA  NA 
@@ -90,14 +90,14 @@ List of 9
 2001-01-10 "U" "j" "x" "e" "y" "D"
 2001-01-11 "U" "j" "x" "e" "y" "D"
 >
-> all.equal(m3.mat, as.matrix(m3.tsm))
+> all.equal(m6.mat, as.matrix(m6.tsm))
 [1] TRUE
-> all.equal(m3.tsm[cbind(c(row(m3.mat)), c(col(m3.mat)))], c(m3.mat))
+> all.equal(m6.tsm[cbind(c(row(m6.mat)), c(col(m6.mat)))], c(m6.mat))
 [1] TRUE
-> all.equal(m3.tsm[data.frame(c(row(m3.mat)), c(col(m3.mat)))], c(m3.mat))
+> all.equal(m6.tsm[data.frame(c(row(m6.mat)), c(col(m6.mat)))], c(m6.mat))
 [1] TRUE
-> all.equal(m3.tsm[data.frame(rownames(m3.tsm)[c(row(m3.mat))], c(col(m3.mat)))], c(m3.mat))
+> all.equal(m6.tsm[data.frame(rownames(m6.tsm)[c(row(m6.mat))], c(col(m6.mat)))], c(m6.mat))
 [1] TRUE
-> all.equal(m3.tsm[data.frame(m3.tsm$all.dates[c(row(m3.mat))], c(col(m3.mat)))], c(m3.mat))
+> all.equal(m6.tsm[data.frame(m6.tsm$all.dates[c(row(m6.mat))], c(col(m6.mat)))], c(m6.mat))
 [1] TRUE
 > 

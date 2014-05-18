@@ -21,15 +21,14 @@
 #' the values.  This vector must be the same length as
 #' \code{date}.
 #'
-#'   \item id The id values.  Always sorted.
+#'   \item id The id values.  May be sorted.
 #'
 #'   \item id.idx The start value index into \code{date} and
-#'   \code{value} for each id, with the length of \code{date}
-#'   as the last element, so that
-#'   \code{length(id.idx)==(length(id)+1)}.
+#' \code{value} for each id.  Can contain NA values where an
+#' id does not occur in the data.
 #'
-#'   \item all.ids All the id values, including ones which
-#' have no data.  May or may not be sorted.
+#'   \item id.noc The number of occurences of each id in
+#' \code{date} and \code{value}.  Can contain zeros.
 #'
 #'   \item all.dates class numeric, Date or POSIXct.  Will
 #'   be sorted unless drop.unneeded.dates was FALSE and x was
@@ -40,10 +39,10 @@
 #'   \item backfill logical
 #' }
 #'
-#' The data is sorted by \code{id} first and \code{date}
-#' second.  If there are no values for a particular id it
-#' still has a start vlaue in \code{id.idx}, and the start
-#' value of the next id will be the same start value.
+#' The data are grouped by \code{id} (possibly sorted) first
+#' and sorted by \code{date} second.  If there are no values
+#' for a particular id the value in \code{id.idx} is
+#' ignored.
 #'
 #' @details A sparsetsmat object is stored as a list of four
 #' vectors: the date index, the identifier values and
@@ -54,7 +53,7 @@
 #' with an extra value at the end which is the length of the
 #' date index.
 #'
-sparsetsmat <- function(x, date.col=1, id.col=2, value.col=3, sort.ids=TRUE, ids=NULL, backfill=FALSE, drop.unneeded.dates=FALSE) {
+sparsetsmat <- function(x, date.col=1, id.col=2, value.col=3, sort.ids=is.data.frame(x), ids=NULL, backfill=FALSE, drop.unneeded.dates=FALSE, keep.df.names=TRUE, POSIX=FALSE, tz='UTC') {
     if (is.data.frame(x)) {
         # sort the rows, and remove those with NA date or identifier
         df <- x[order(x[,id.col], x[,date.col], na.last=NA), , drop=FALSE]
@@ -74,32 +73,39 @@ sparsetsmat <- function(x, date.col=1, id.col=2, value.col=3, sort.ids=TRUE, ids
         }
         if (any(dup.row))
             df <- df[c(TRUE, !dup.row), , drop=FALSE]
-        if (is.null(ids)) {
-            if (sort.ids) {
-                all.ids <- ids <- unique(sort(df[,id.col]))
-            } else {
-                all.ids <- unique(df[,id.col])
-                ids <- sort(all.ids)
-            }
+        if (is.null(ids))
+            ids <- unique(df[,id.col])
+        if (sort.ids)
+            ids <- sort(ids)
+        if (is.factor(df[,id.col])) {
+            id.idx <- match(as.integer(ids), as.integer(df[, id.col]))
+            id.rle <- rle(as.integer(df[,id.col]))
+            id.noc <- id.rle$lengths[match(match(ids, levels(df[,id.col])), id.rle$values)]
+            ids <- as.character(ids)
+        } else {
+            id.idx <- match(ids, df[, id.col])
+            id.rle <- rle(df[,id.col])
+            id.noc <- id.rle$lengths[match(ids, id.rle$values)]
         }
-        id.idx <- c(match(ids, df[, id.col]), nrow(df)+1L)
+        if (any(is.na(id.noc) & !is.na(id.idx)))
+            stop('found an id in id.col, but not in rle!')
         # be careful coz id.idx could have NA values in it (if ids supplied)
         date <- df[,date.col]
         if (inherits(date, 'Date'))
             storage.mode(date) <- 'integer'
         # record column names from original data
-        nm <- c(names(df[1, date.col, drop=FALSE]),
-                names(df[1, id.col, drop=FALSE]),
-                names(df[1, value.col, drop=FALSE]))
+        if (keep.df.names)
+            nm <- colnames(df)[c(date.col, id.col, value.col)]
+        else
+            nm <- c('date', 'id', 'value')
         if (inherits(date, 'POSIXlt'))
-            date <- as.POSIXct(date)
+            date <- as.POSIXct(date, tz='UTC')
+        if (!inherits(date, 'POSIXct') && POSIX)
+            date <- as.POSIXct(date, tz='UTC')
         if (drop.unneeded.dates)
             all.dates <- sort(unique(date))
-        if (any(diff(id.idx) < 0))
-            stop('inconsistent id.idx was constructed')
         return(structure(list(date=date, value=df[,value.col],
-                              id=ids, id.idx=id.idx,
-                              all.ids=all.ids,
+                              id=ids, id.idx=id.idx, id.noc=id.noc,
                               all.dates=all.dates, df.colnames=nm,
                               backfill=backfill, sort.ids=sort.ids),
                          class='sparsetsmat'))
@@ -113,17 +119,28 @@ sparsetsmat <- function(x, date.col=1, id.col=2, value.col=3, sort.ids=TRUE, ids
             date <- seq(nrow(x))
         } else if (all(regexpr('^[0-9]+$', d)>0)) {
             date <- as.numeric(d)
-        } else if (max(nchar(d))<=10) {
+        } else if (max(nchar(d))<=10 && !POSIX) {
             date <- as.Date(d)
             if (any(is.na(date)))
                 stop('NAs in Date-like(?) rownames on x')
         } else {
-            date <- strptime(d)
+            date <- as.POSIXct(d, tz='UTC')
             if (any(is.na(date)))
                 stop('NAs in date-time(?) rownames on x')
         }
         all.dates <- date
-        res <- lapply(seq(ncol(x)), function(i) {
+        if (is.null(ids))
+            ids <- colnames(x)
+        if (is.null(ids) && is.null(colnames(x))) {
+            id.ord <- ids <- seq(ncol(x))
+        } else {
+            if (sort.ids)
+                ids <- sort(ids)
+            id.ord <- match(ids, colnames(x))
+            if (all(is.na(id.ord)) && length(ids) && ncol(x))
+                warning('no ids found in colnames of x')
+        }
+        res <- lapply(id.ord, function(i) {
             col <- x[,i,drop=TRUE]
             prev <- col[c(1, seq(len=length(col)-1))]
             j <- which((!is.na(col) & replace(is.na(prev) | col != prev, 1, TRUE))
@@ -132,14 +149,12 @@ sparsetsmat <- function(x, date.col=1, id.col=2, value.col=3, sort.ids=TRUE, ids
         })
         dd <- date[unlist(lapply(res, '[[', 1), use.names=FALSE)]
         vv <- unlist(lapply(res, '[[', 3), use.names=FALSE)
-        ids <- colnames(x)
-        if (sort.ids) all.ids <- sort(ids) else all.ids <- ids
-        id.idx <- as.integer(round(cumsum(c(1,unlist(lapply(res, '[[', 2), use.names=FALSE)))))
+        id.noc <- as.integer(unlist(lapply(res, '[[', 2), use.names=FALSE))
+        id.idx <- as.integer(round(cumsum(c(1,id.noc[-length(id.noc)]))))
         if (drop.unneeded.dates)
             all.dates <- sort(unique(dd))
-        if (any(diff(id.idx) < 0))
-            stop('inconsistent id.idx was constructed')
-        return(structure(list(date=dd, value=vv, id=ids, id.idx=id.idx, all.ids=all.ids,
+        return(structure(list(date=dd, value=vv, id=ids,
+                              id.idx=id.idx, id.noc=id.noc,
                               all.dates=all.dates, df.colnames=c('date','id','value'),
                               backfill=backfill, sort.ids=sort.ids),
                          class='sparsetsmat'))
@@ -147,5 +162,3 @@ sparsetsmat <- function(x, date.col=1, id.col=2, value.col=3, sort.ids=TRUE, ids
         stop('expecting data.frame or matrix')
     }
 }
-
-

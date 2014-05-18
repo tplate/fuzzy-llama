@@ -2,6 +2,7 @@ locf.default <- function(x, initial=NA, distance=NA, toofar=initial, dims=1, fas
     # for higher-d arrays, dims has the same meaning as for colSums()
     # dims=1 means carry forward only along the first dimension
     # dims=2 means carry forward around in the matrix formed by dim 1 and dim 2
+    bapply <- function(...) stop('not provided here')
     if (length(initial)!=1)
         stop("initial must have length 1")
     if (length(toofar)!=1)
@@ -25,24 +26,24 @@ locf.default <- function(x, initial=NA, distance=NA, toofar=initial, dims=1, fas
         }
     } else if (is.virtual.array(x) && length(dim(x))>1 && prod(dim(x))>0) {
         # virtual non-empty array
-        if (fast) {
+        if (FALSE && fast) {
             z <- as.array(x)
             dimnames(z) <- NULL
             if (length(dim(z)) > 2)
                 dim(z) <- c(prod(dim(z)[seq(len=dims)]), prod(dim(z)[-seq(len=dims)]))
-            z <- .Call('locf', z, initial, as.integer(distance), toofar, dims=1L, inplace=1L)
+            # z <- .Call('locf', z, initial, as.integer(distance), toofar, dims=1L, inplace=1L)
             dim(z) <- dim(x)
             dimnames(z) <- dimnames(x)
         } else {
             z <- bapply(x, seq(dims+1, to=length(dim(x))), locf, initial, distance, toofar)
         }
-    } else if (fast && length(x) > 0) {
+    } else if (FALSE && fast && length(x) > 0) {
         # ordinary array or vector, use fast method
         z <- x
         dimnames(z) <- NULL
         if (length(dim(z)) > 2)
             dim(z) <- c(prod(dim(z)[seq(len=dims)]), prod(dim(z)[-seq(len=dims)]))
-        z <- .Call('locf', z, initial, as.integer(distance), toofar, dims=1L, inplace=0L)
+        # z <- .Call('locf', z, initial, as.integer(distance), toofar, dims=1L, inplace=0L)
         dim(z) <- dim(x)
         dimnames(z) <- dimnames(x)
     } else if (length(dim(x))>1 && prod(dim(x))>0) {
@@ -98,6 +99,7 @@ locf.default <- function(x, initial=NA, distance=NA, toofar=initial, dims=1, fas
 locf <- function(x, initial=NA, distance=NA, toofar=initial, dims=1) UseMethod("locf")
 nocb <- function(x, initial=NA, distance=NA, toofar=initial, dims=1) UseMethod("nocb")
 nocb.default <- function(x, initial=NA, distance=NA, toofar=initial, dims=1) {
+    bapply <- function(...) stop('not provided here')
     if (length(initial)!=1)
         stop("initial must have length 1")
     if (length(toofar)!=1)
@@ -175,6 +177,7 @@ nocb.default <- function(x, initial=NA, distance=NA, toofar=initial, dims=1) {
 # reference implementation of nocb, which implements by simply reversing
 nocb.ref <- function(x, initial=NA, distance=NA, toofar=initial, dims=1) UseMethod("nocb.ref")
 nocb.ref.default <- function(x, initial=NA, distance=NA, toofar=initial, dims=1) {
+    bapply <- function(...) stop('not provided here')
     if (length(initial)!=1)
         stop("initial must have length 1")
     if (length(toofar)!=1)

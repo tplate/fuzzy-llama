@@ -52,24 +52,35 @@
     }
     if (missing(j))
         j <- seq(along=x$id)
-    if (!is.numeric(i) && !is.character(i) && !inherits(i, 'Date') && !inherits(i, 'POSIXt'))
-        stop('first index must be numeric, character, Date or POSIXt')
     if (!is.null(dim(j)))
         stop('second index must be a vector')
-    # Align date types of i and date-index in x
-    if (is.character(i) && inherits(x$date, 'Date')) {
-        i <- as.Date(i)
-    } else if (is.character(i) && inherits(x$date, 'POSIXct')) {
-        i <- as.POSIXct(i)
-    } else if (inherits(i, 'POISXlt')) {
-        if (inherits(x$date, 'Date'))
+    if (!is.numeric(i) && !is.character(i) && !is.factor(i) && !inherits(i, 'Date') && !inherits(i, 'POSIXt'))
+        stop('first index must be numeric, character, factor, Date or POSIXt (is ', class(i), ')')
+    if (is.factor(i)) {
+        if (inherits(x$date, 'Date')) {
+            i <- as.Date(levels(i))[as.integer(i)]
+        } else if (inherits(x$date, 'POSIXct')) {
+            i <- as.POSIXct(levels(i))[as.integer(i)]
+        }
+    } else {
+        # Align date types of i and date-index in x
+        if (is.character(i) && inherits(x$date, 'Date')) {
+            # only parse unique values
+            i <- with(list(iu=unique(i)), as.Date(iu)[match(i, iu)])
+        } else if (is.character(i) && inherits(x$date, 'POSIXct')) {
+            # only parse unique values
+            i <- with(list(iu=unique(i)), as.POSIXct(iu)[match(i, iu)])
+        } else if (inherits(i, 'POISXlt')) {
+            if (inherits(x$date, 'Date'))
+                i <- as.Date(i)
+            else
+                i <- as.POSIXct(i)
+        } else if (inherits(i, 'POSIXct') && inherits(x$date, 'Date')) {
             i <- as.Date(i)
-        else
-            i <- as.POSIXct(i)
-    } else if (inherits(i, 'POISXct') && inherits(x$date, 'Date')) {
-        i <- as.Date(i)
+        }
     }
     if (   (is.numeric(i) | is.integer(i))
+        && !(inherits(i, 'Date') | inherits(i, 'POSIXct'))
         && (inherits(x$date, 'Date') | inherits(x$date, 'POSIXct'))) {
         if (!is.integer(i) & any(abs(i - round(i)) > 1e-4))
             stop('non-wholenumber numeric i index with date indices on x')
@@ -92,7 +103,7 @@
         if (!mat.ind)
             i.dn <- format(i)
         i.idx <- as.integer(i)
-    } else if (inherits(i, 'POISXct')) {
+    } else if (inherits(x$date, 'POSIXct')) {
         if (!inherits(i, 'POSIXct'))
             stop('cannot use ', class(i)[1], ' i index with POSIXct indices on x')
         if (!mat.ind)
@@ -129,12 +140,10 @@
         if (length(j.idx.unq)==0) {
             val <- x$value[0]
         } else if (length(j.idx.unq)==1) {
-            if (is.na(j.idx.unq)) {
-                val <- replace(rep(x$value[1], length(i.idx)), TRUE, NA)
-            } else if (x$id.idx[j.idx.unq] == x$id.idx[j.idx.unq+1]) {
+            if (is.na(j.idx.unq) || x$id.noc[j.idx.unq] == 0) {
                 val <- replace(rep(x$value[1], length(i.idx)), TRUE, NA)
             } else {
-                k <- seq(x$id.idx[j.idx.unq], x$id.idx[j.idx.unq+1]-1)
+                k <- seq(x$id.idx[j.idx.unq], len=x$id.noc[j.idx.unq])
                 if (all(is.na(x$value[k]))) {
                     val <- x$value[k[1]]
                 } else {
@@ -148,11 +157,9 @@
             val <- unlist(lapply(seq(along=j.idx.unq), function(jj) {
                 # somewhere in here I'm indexing with a double that
                 # is outside of the range of 32 bit int...
-                if (is.na(j.idx.unq[jj]))
+                if (x$id.noc[j.idx.unq[jj]] == 0)
                     return(rep(NA, jj.idx[jj+1] - jj.idx[jj]))
-                if (x$id.idx[j.idx.unq[jj]] == x$id.idx[j.idx.unq[jj]+1])
-                    return(rep(NA, jj.idx[jj+1] - jj.idx[jj]))
-                k <- seq(x$id.idx[j.idx.unq[jj]], x$id.idx[j.idx.unq[jj]+1]-1)
+                k <- seq(x$id.idx[j.idx.unq[jj]], len=x$id.noc[j.idx.unq[jj]])
                 if (all(is.na(x$value[k])))
                     return(x$value[k[1]])
                 ii <- seq(jj.idx[jj], jj.idx[jj+1]-1)
@@ -171,10 +178,10 @@
             val <- x$value[0]
         } else if (length(j.idx)==1) {
             # single column (could be single element)
-            if (x$id.idx[j.idx] == x$id.idx[j.idx+1]) {
+            if (x$id.noc[j.idx] == 0) {
                 val <- rep(NA, length(i.idx))
             } else {
-                k <- seq(x$id.idx[j.idx], x$id.idx[j.idx+1]-1)
+                k <- seq(x$id.idx[j.idx], len=x$id.noc[j.idx])
                 if (all(is.na(x$value[k]))) {
                     val <- x$value[k[1]]
                 } else {
@@ -188,15 +195,15 @@
             val <- unlist(lapply(seq(along=j.idx), function(jj) {
                 if (is.na(j.idx[jj]))
                     return(rep(NA, length(i.idx)))
-                if (x$id.idx[j.idx[jj]] == x$id.idx[j.idx[jj]+1])
+                if (x$id.noc[j.idx[jj]] == 0)
                     return(rep(NA, length(i.idx)))
-                k <- seq(x$id.idx[j.idx[jj]], x$id.idx[j.idx[jj]+1]-1)
+                k <- seq(x$id.idx[j.idx[jj]], len=x$id.noc[j.idx[jj]])
                 if (all(is.na(x$value[k])))
                     return(x$value[k[1]])
                 # need to cope with all NAs or some NAs
                 val.idx <- approx(x$date[k], k, xout=i.idx, method='constant', ties='ordered', rule=rule)$y
                 return(x$value[val.idx])
-            }), use.name=FALSE)
+            }), use.names=FALSE)
         }
         # attach dimensions and names
         if (drop && length(i)==1) {
@@ -211,4 +218,8 @@
         }
     }
     return(val)
+}
+
+'[<-.sparsetsmat' <- function(x, i, j, ..., value) {
+    stop('no replacement functions yet defined for sparsetsmat')
 }

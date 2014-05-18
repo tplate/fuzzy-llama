@@ -1,14 +1,13 @@
-* fix usage of all.ids component, note in comments that x$id may not be sorted
-* DONE: add 'default' value to structure to use earlier (backfill T/F)
 * allow multiple value columns (like a 3-d data frame)
+* DONE: make x$id be agnostic to order, add id.noc component for lengths
+* DONE: add 'default' value to structure to use earlier (backfill T/F)
 * DONE: conversion from non-sparse matrix
 * DONE: sparsify data frame data
-* appending single row of data
-* appending multiple row of data
-* appending records of data
-* inserting single row of data
-* inserting multiple row of data
-* inserting records of data
+* DONE appending multiple row of data
+* DONE appending records of data
+* DONE inserting single row of data
+* DONE inserting multiple row of data
+* DONE inserting records of data
 * setting individual rows -- go via data.frame representation
 * DONE: optional colnames argument for original constructor
 * DONE: i,j subsetting

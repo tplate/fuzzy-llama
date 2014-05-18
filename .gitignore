@@ -4,6 +4,7 @@
 # History files
 .Rhistory
 .Rincr_history
+.Rapp.history
 .Rapp_history
 
 # Example code in package build process
@@ -19,3 +20,4 @@ tmp*
 *.tmp
 *.Rcheck
 varray.tests
+sparsetsmat.tests
