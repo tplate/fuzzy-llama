@@ -1,7 +1,13 @@
 * allow multiple value columns (like a 3-d data frame)
-* setting individual rows -- go via data.frame representation
 * figure out desired j behavior for NA and out-of-range j indices
 * get Cpp code working for matrix indexing
+* add backfill arg to Cpp code for square i,j indexing
+* make i,j indexing sort the i's (and produce a kk same as for matrix indexing)
+* add tests for replacement function
+   - where we don't actually change anything
+   - where one change turns a later non-change into a change
+   - out of order args to the replace
+* DONE: replacement function -- go via data.frame representation
 * DONE: get Cpp code working for i,j indexing
 * DONE: make x$id be agnostic to order, add id.noc component for lengths
 * DONE: add 'default' value to structure to use earlier (backfill T/F)

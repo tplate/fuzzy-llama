@@ -10,6 +10,8 @@
 #' returned integers index into \code{values(x)} (the sorted
 #' unique values in \code{x}).
 #'
+#' @param details logical If TRUE, return a list with the normalized indices and values.
+#'
 #' @details
 #'
 #' Rules for interpreting i: \itemize{
@@ -32,10 +34,10 @@
 #'    \item The first column in a matrix index (can be a
 #' dataframe) is interpreted in the same way.
 #' }
-'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE) {
+'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE) {
     if (length(list(...)))
         stop('unexpected ... args')
-    nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx))
+    nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details))
     mat.ind <- FALSE
     if (missing(i))
         i <- x$all.dates
@@ -182,6 +184,10 @@
                 return(val.idx)
             }), use.names=FALSE)
         }
+        if (details) {
+            return(list(mat.idx=TRUE, i.idx=i.idx, j.idx=j.idx,
+                        val.idx=val.idx, val=x$values[val.idx], kk=kk))
+        }
         if (vidx)
             val <- match(x$values, sort(unique(x$values)))[val.idx]
         else
@@ -228,6 +234,9 @@
                 return(val.idx)
             }), use.names=FALSE)
         }
+        if (details)
+            return(list(mat.idx=FALSE, i.idx=i.idx, j.idx=j.idx,
+                        val.idx=val.idx, val=x$values[val.idx], k=seq(along=val.idx)))
         if (vidx)
             val <- match(x$values, sort(unique(x$values)))[val.idx]
         else
@@ -246,4 +255,3 @@
     }
     return(val)
 }
-

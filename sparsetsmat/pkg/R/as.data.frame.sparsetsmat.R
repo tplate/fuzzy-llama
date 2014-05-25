@@ -10,7 +10,7 @@ as.data.frame.sparsetsmat <- function(x, ...) {
     df <- as.data.frame(list(dates=x$dates,
                              ids=rep(x$ids[io], x$id.noc[io]),
                              values=x$values),
-                        row.names=NULL)
+                        row.names=NULL, stringsAsFactors=FALSE)
     if (!is.null(x$df.colnames))
         names(df) <- x$df.colnames
     attr(df, 'ids') <- x$ids
