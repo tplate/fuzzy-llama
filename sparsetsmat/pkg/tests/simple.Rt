@@ -2,90 +2,127 @@
 > m1.df <- data.frame(d=c(    1,  4,  5,  2,  1,  2,  3,  5),
 +                       p=c('a','a','a','b','e','e','d','d'),
 +                       v=c(  1,  2,  3,  4,  5,  6,  7,  8))
-> m1.tsm <- sparsetsmat(m1.df)
+> m1.tsm <- sparsetsmat(m1.df, ids=c('a','c','b','f','e','d'))
 > m1.tsm[, ]
-  a  b  d e
-1 1 NA NA 5
-2 1  4 NA 6
-3 1  4  7 6
-4 2  4  7 6
-5 3  4  8 6
+  a  c  b  f e  d
+1 1 NA NA NA 5 NA
+2 1 NA  4 NA 6 NA
+3 1 NA  4 NA 6  7
+4 2 NA  4 NA 6  7
+5 3 NA  4 NA 6  8
 > m1.tsm
-5 x 4 sparse persistent time-series matrix of class 'sparsetsmat'
+5 x 6 sparse persistent time-series matrix of class 'sparsetsmat'
   rownames[5] class 'numeric', 1, 2, ..., 5
-  colnames[4] class 'character', a, b, d, e
+  colnames[6] class 'character', a, c, ..., d
   values class 'numeric', 1, 2, ..., 8 (length 8, 8 unique, 0 NAs)
   data.frame column names: d, p, v
+> m1.mat <- as.matrix(m1.tsm)
+> attributes(m1.mat)
+$dim
+[1] 5 6
+
+$dimnames
+$dimnames[[1]]
+[1] "1" "2" "3" "4" "5"
+
+$dimnames[[2]]
+[1] "a" "c" "b" "f" "e" "d"
+
+
 > as.data.frame(m1.tsm)
   d p v
 1 1 a 1
 2 4 a 2
 3 5 a 3
 4 2 b 4
-5 3 d 7
-6 5 d 8
-7 1 e 5
-8 2 e 6
+5 1 e 5
+6 2 e 6
+7 3 d 7
+8 5 d 8
 > 
 > as.matrix(m1.tsm)
-  a  b  d e
-1 1 NA NA 5
-2 1  4 NA 6
-3 1  4  7 6
-4 2  4  7 6
-5 3  4  8 6
+  a  c  b  f e  d
+1 1 NA NA NA 5 NA
+2 1 NA  4 NA 6 NA
+3 1 NA  4 NA 6  7
+4 2 NA  4 NA 6  7
+5 3 NA  4 NA 6  8
 > 
-> m1.tsm[2,2]
+> m1.tsm[2,3]
 [1] 4
 > m1.tsm[2,2:3]
- b  d 
- 4 NA 
+ c  b 
+NA  4 
 > m1.tsm[2,1:3]
- a  b  d 
- 1  4 NA 
-> m1.tsm[1:2,1:3]
-  a  b  d
-1 1 NA NA
-2 1  4 NA
+ a  c  b 
+ 1 NA  4 
+> m1.tsm[1:2,1:4]
+  a  c  b  f
+1 1 NA NA NA
+2 1 NA  4 NA
 > 
 > m1.tsm[cbind(c(2,3,4),c(1,1,1))]
 [1] 1 1 2
 > m1.tsm[cbind(c(2,3,4),c(2))]
-[1] 4 4 4
+[1] NA NA NA
 > m1.tsm[cbind(c(2,3,4),c(3))]
-[1] NA  7  7
-> m1.tsm[cbind(c(2,3,4),c(4))]
+[1] 4 4 4
+> m1.tsm[cbind(c(2,3,4),c(5))]
 [1] 6 6 6
+> m1.tsm[cbind(c(2,3,4),c(6))]
+[1] NA  7  7
 > # check retrieval of all values by matrix indexing
 > v <- as.matrix(m1.tsm)
 > all.equal(m1.tsm[cbind(c(row(v)), c(col(v)))], c(v))
 [1] TRUE
 > 
 > as.data.frame(sparsetsmat(as.matrix(m1.tsm)))
-  date id value
-1    1  a     1
-2    4  a     2
-3    5  a     3
-4    2  b     4
-5    3  d     7
-6    5  d     8
-7    1  e     5
-8    2  e     6
+  dates ids values
+1     1   a      1
+2     4   a      2
+3     5   a      3
+4     2   b      4
+5     1   e      5
+6     2   e      6
+7     3   d      7
+8     5   d      8
 > 
-> m1.tsm <- sparsetsmat(m1.df, keep.df.names=F)
-> all.equal(m1.tsm, sparsetsmat(as.matrix(m1.tsm), sort.ids=TRUE))
-[1] TRUE
+> # various edge cases in indexing
+> m1.tsm[,'d']
+ 1  2  3  4  5 
+NA NA  7  7  8 
+> m1.tsm[,6]
+ 1  2  3  4  5 
+NA NA  7  7  8 
+> m1.tsm[2:3,6]
+ 2  3 
+NA  7 
+> m1.tsm[as.integer(NA),3]
+[1] NA
+> m1.tsm[integer(0),3]
+numeric(0)
+> m1.tsm[as.integer(c(NA,NA)),6]
+<NA> <NA> 
+  NA   NA 
+> m1.tsm[as.integer(c(NA,NA)),6,drop=F]
+      d
+<NA> NA
+<NA> NA
 > 
 > # see if out-of-order colnames can be maintained
 > m1o.mat <- as.matrix(m1.tsm)[,c(1,4,2,3)]
 > all.equal(m1o.mat, as.matrix(sparsetsmat(m1o.mat, sort.ids=FALSE)))
 [1] TRUE
 > 
+> m1n.tsm <- sparsetsmat(m1.df, keep.df.names=F)
+> all.equal(m1n.tsm, sparsetsmat(as.matrix(m1n.tsm)))
+[1] TRUE
+> 
 > m2.df <- data.frame(d=seq(as.Date('2001-01-01'), len=5, by='days')[
 +                         c(    1,  4,  5,  2,  1,  2,  3,  5)],
 +                       p=c('a','a','a','b','e','e','d','d'),
 +                       v=c(  1,  2,  3,  4,  5,  6,  7,  8))
-> m2.tsm <- sparsetsmat(m2.df)
+> m2.tsm <- sparsetsmat(m2.df, sort.ids=TRUE)
 > m2.tsm[, ]
            a  b  d e
 2001-01-01 1 NA NA 5

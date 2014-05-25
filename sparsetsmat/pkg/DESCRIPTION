@@ -8,3 +8,5 @@ Maintainer: Tony Plate <tplate@acm.org>
 Description: Efficient storage for persistent sparse time-series matrices
 Suggests: scriptests
 License: GPL
+Imports: Rcpp (>= 0.11.1)
+LinkingTo: Rcpp

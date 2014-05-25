@@ -6,29 +6,29 @@
 > m5.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), n*m), sample(n*m, max(3*n, 1.5*m)), sample(c(letters, LETTERS), max(3*n, 1.5*m), rep=TRUE)), nrow=n, ncol=m, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=n, by='days')), paste('V', seq(m), sep=''))))
 > m5.tsm <- sparsetsmat(m5.mat)
 > head(as.data.frame(m5.tsm))
-        date id value
-1 2001-09-17 V1     F
-2 2003-10-05 V2     F
-3 2005-08-07 V3     p
-4 2001-01-30 V4     L
-5 2003-02-11 V5     i
-6 2007-05-19 V5     T
+       dates ids values
+1 2001-09-17  V1      F
+2 2003-10-05  V2      F
+3 2005-08-07  V3      p
+4 2001-01-30  V4      L
+5 2003-02-11  V5      i
+6 2007-05-19  V5      T
 > 
 > m5.tsm
 2537 x 12119 sparse persistent time-series matrix of class 'sparsetsmat'
   rownames[2537] class 'Date', 2001-01-01, 2001-01-02, ..., 2007-12-12
   colnames[12119] class 'character', V1, V2, ..., V12119
-  values class 'character', A, B, ..., z (length 52, 52 unique, 0 NAs)
-  data.frame column names: date, id, value
+  values class 'character', a, A, ..., Z (length 52, 52 unique, 0 NAs)
+  data.frame column names: dates, ids, values
 > str(m5.tsm)
 List of 9
- $ date       : Date[1:18005], format: "2001-09-17" "2003-10-05" ...
- $ value      : chr [1:18005] "F" "F" "p" "L" ...
- $ id         : chr [1:12119] "V1" "V2" "V3" "V4" ...
- $ id.idx     : int [1:12119] 1 2 3 4 5 7 7 8 9 11 ...
+ $ dates      : Date[1:18005], format: "2001-09-17" "2003-10-05" ...
+ $ values     : chr [1:18005] "F" "F" "p" "L" ...
+ $ ids        : chr [1:12119] "V1" "V2" "V3" "V4" ...
+ $ id.idx     : int [1:12119] 1 2 3 4 5 NA 7 8 9 11 ...
  $ id.noc     : int [1:12119] 1 1 1 1 2 0 1 1 2 4 ...
  $ all.dates  : Date[1:2537], format: "2001-01-01" "2001-01-02" ...
- $ df.colnames: chr [1:3] "date" "id" "value"
+ $ df.colnames: chr [1:3] "dates" "ids" "values"
  $ backfill   : logi FALSE
  $ sort.ids   : logi FALSE
  - attr(*, "class")= chr "sparsetsmat"

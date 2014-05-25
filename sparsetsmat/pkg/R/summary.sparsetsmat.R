@@ -4,10 +4,10 @@ summary.sparsetsmat <- function(object, ...) {
         " sparse persistent time-series matrix of class '", class(x), "'\n", sep='')
     cat("  rownames[", nrow(x), "] class '", class(x$all.dates)[1], "', ",
         describe.values(x$all.dates, countna=F, total=F, nuniq=F),  "\n", sep="")
-    cat("  colnames[", ncol(x), "] class '", class(x$id), "', ",
-        describe.values(x$id, countna=F, total=F, nuniq=F),  "\n", sep="")
-    cat("  values class '", paste(class(x$value), collapse=':'), "', ",
-        describe.values(sort(unique(x$value)), countna=T, total=T, nuniq=T),  "\n", sep="")
+    cat("  colnames[", ncol(x), "] class '", class(x$ids), "', ",
+        describe.values(x$ids, countna=F, total=F, nuniq=F),  "\n", sep="")
+    cat("  values class '", paste(class(x$values), collapse=':'), "', ",
+        describe.values(sort(unique(x$values)), countna=T, total=T, nuniq=T),  "\n", sep="")
     cat("  data.frame column names: ", paste(x$df.colnames, collapse=', '), '\n', sep='')
     invisible(x)
 }

@@ -6,4 +6,22 @@
 > set.seed(1)
 > m3.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 23*17), sample(23*17, 52), c(letters, LETTERS)), nrow=23, ncol=17, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=23, by='days')), paste('V', 1:17, sep=''))))
 > m3.tsm <- sparsetsmat(m3.mat)
+> i <- 1:12
+> all.equal(m3.tsm, add.data(sparsetsmat(m3.mat[ii,]), sparsetsmat(m3.mat[-ii,])))
+[1] TRUE
+> ii <- c(2,5:13,19)
+> all.equal(m3.tsm, add.data(sparsetsmat(m3.mat[ii,]), sparsetsmat(m3.mat[-ii,])))
+[1] TRUE
+> all.equal(m3.tsm, add.data(sparsetsmat(m3.mat[-ii,]), sparsetsmat(m3.mat[ii,])))
+> 
+> # break into 4 parts and recombine
+> jj <- 5:14
+> x <- add.data(add.data(add.data(sparsetsmat(m3.mat[ii,jj]), sparsetsmat(m3.mat[-ii,-jj])), sparsetsmat(m3.mat[ii,-jj])), sparsetsmat(m3.mat[-ii,jj]))
+> # the recombination has ids in a different order, so need to sort the cols to compare
+> all.equal(as.matrix(m3.mat)[,order(colnames(m3.mat))], as.matrix(x)[,order(colnames(x))])
+> 
+> m3s.tsm <- sparsetsmat(m3.mat, sort.ids=T)
+> xs <- add.data(add.data(add.data(sparsetsmat(m3.mat[ii,jj]), sort.ids=TRUE, sparsetsmat(m3.mat[-ii,-jj])), sparsetsmat(m3.mat[ii,-jj])), sparsetsmat(m3.mat[-ii,jj]))
+> all.equal(xs, m3s.tsm)
+[1] TRUE
 > 
