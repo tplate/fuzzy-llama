@@ -68,7 +68,7 @@
         if (inherits(x$dates, 'Date')) {
             i <- as.Date(levels(i))[as.integer(i)]
         } else if (inherits(x$dates, 'POSIXct')) {
-            i <- as.POSIXct(levels(i))[as.integer(i)]
+            i <- as.POSIXct(levels(i), tz='UTC')[as.integer(i)]
         }
     } else {
         # Align date types of i and date-index in x
@@ -77,12 +77,12 @@
             i <- with(list(iu=unique(i)), as.Date(iu)[match(i, iu)])
         } else if (is.character(i) && inherits(x$dates, 'POSIXct')) {
             # only parse unique values
-            i <- with(list(iu=unique(i)), as.POSIXct(iu)[match(i, iu)])
+            i <- with(list(iu=unique(i)), as.POSIXct(iu, tz='UTC')[match(i, iu)])
         } else if (inherits(i, 'POISXlt')) {
             if (inherits(x$dates, 'Date'))
                 i <- as.Date(i)
             else
-                i <- as.POSIXct(i)
+                i <- as.POSIXct(i, tz='UTC')
         } else if (inherits(i, 'POSIXct') && inherits(x$dates, 'Date')) {
             i <- as.Date(i)
         }

@@ -6,7 +6,10 @@
 * add tests for replacement function
    - where we don't actually change anything
    - where one change turns a later non-change into a change
-   - out of order args to the replace
+   - out of time-order args to the replace
+   - just have a single date beyond the range of the existing
+* DONE: get add.data function being more efficient for the case where adding
+  a single date that is greater than all existing
 * DONE: replacement function -- go via data.frame representation
 * DONE: get Cpp code working for i,j indexing
 * DONE: make x$id be agnostic to order, add id.noc component for lengths

@@ -19,7 +19,7 @@
     if (inherits(x$dates, 'Date'))
         y$i <- as.Date(y$i.idx)
     else if (inherits(x$dates, 'Date'))
-        y$i <- as.POSIXct(y$i.idx)
+        y$i <- as.POSIXct(y$i.idx, tz='UTC')
     else
         y$i <- y$i.idx
     # get the values in the same order as the indices in y

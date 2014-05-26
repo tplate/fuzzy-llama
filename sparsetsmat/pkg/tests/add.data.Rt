@@ -1,4 +1,4 @@
-> # Create test by creating a large matrix
+> # Create test by creating a medium matrix
 > # Encode two halves of it as a sparsetsmat
 > # Confirm that add.data works with both halves to create whole in all combinations
 > # Try interleaved 'halves'
@@ -24,4 +24,69 @@
 > xs <- add.data(add.data(add.data(sparsetsmat(m3.mat[ii,jj]), sort.ids=TRUE, sparsetsmat(m3.mat[-ii,-jj])), sparsetsmat(m3.mat[ii,-jj])), sparsetsmat(m3.mat[-ii,jj]))
 > all.equal(xs, m3s.tsm)
 [1] TRUE
+> 
+> options(error=function(x) NULL)
+> set.seed(1)
+> m7.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 35), sample(7*5, 11), c(letters, LETTERS)[1:11]), nrow=7, ncol=5, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=7, by='3 days')), paste('V', 1:5, sep=''))))
+> m7.tsm <- sparsetsmat(m7.mat)
+> as.matrix(m7.tsm)
+           V1  V2  V3  V4  V5 
+2001-01-01 NA  NA  NA  NA  NA 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-10 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+>
+> as.matrix(add.data(m7.tsm, rbind('2001-01-14'=c(V1='e', V2='b', V3='z', V4='g', V5='h'))))
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-14 "e" "b" "z" "g" "h"
+2001-01-16 "k" "b" "z" "f" "h"
+2001-01-19 "e" "b" "z" "g" "h"
+> as.matrix(add.data(m7.tsm, rbind('2001-01-14'=c(V1='e', V2='b', V3='z', V4='g', V5='y'))))
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-14 "e" "b" "z" "g" "y"
+2001-01-16 "k" "b" "z" "f" "y"
+2001-01-19 "e" "b" "z" "g" "y"
+> as.matrix(add.data(m7.tsm, rbind('2001-01-14'=c(V1='e', V2='b', V3='c', V4='g', V5='h'))))
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-14 "e" "b" "c" "g" "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+> as.matrix(add.data(m7.tsm, rbind('2001-01-20'=c(V1='e', V2='b', V3='z', V4='g', V5='h'))))
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+2001-01-20 "e" "b" "z" "g" "h"
+> as.matrix(add.data(m7.tsm, rbind('2001-01-20'=c(V1='e', V2='b', V3='z', V4='g', V5='y'))))
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+2001-01-20 "e" "b" "z" "g" "y"
+> 
+> as.matrix(add.data(m7.tsm, rbind('2001-01-20'=c(V1='e', V2='b', V3='c', V4='g', V5='h'))))
+           V1  V2  V3  V4  V5 
+2001-01-01 NA  NA  NA  NA  NA 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-10 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
 > 
