@@ -21,7 +21,8 @@ Rcpp::IntegerVector stsm_xt_sqi_ij(
 		   const Rcpp::IntegerVector i_idx,
 		   const Rcpp::IntegerVector j_idx,
 		   const Rcpp::IntegerVector id_idx,
-		   const Rcpp::IntegerVector id_noc) {
+		   const Rcpp::IntegerVector id_noc,
+		   const int backfill) {
     Rcpp::IntegerVector val_idx(i_idx.size() * j_idx.size());
     int i, j, ii, s, e, k;
     int d;
@@ -41,7 +42,7 @@ Rcpp::IntegerVector stsm_xt_sqi_ij(
 		k = s;
 		while (k < (e-1) && x_date[k+1] <= d)
 		    k++;
-		if (d >= x_date[k])
+		if (d >= x_date[k] || (backfill && k == s))
 		    val_idx[ii] = k + 1; // translate to base-1 index
 		ii++;
 	    }
@@ -64,7 +65,8 @@ Rcpp::IntegerVector stsm_xt_sqd_ij(
 		   const Rcpp::DoubleVector i_idx,
 		   const Rcpp::IntegerVector j_idx,
 		   const Rcpp::IntegerVector id_idx,
-		   const Rcpp::IntegerVector id_noc) {
+		   const Rcpp::IntegerVector id_noc,
+		   const int backfill) {
     Rcpp::IntegerVector val_idx(i_idx.size() * j_idx.size());
     int i, j, ii, s, e, k;
     double d;
@@ -84,7 +86,7 @@ Rcpp::IntegerVector stsm_xt_sqd_ij(
 		k = s;
 		while (k < (e-1) && x_date[k+1] <= d)
 		    k++;
-		if (d >= x_date[k])
+		if (d >= x_date[k] || (backfill && k==s))
 		    val_idx[ii] = k + 1; // translate to base-1 index
 		ii++;
 	    }

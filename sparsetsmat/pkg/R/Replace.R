@@ -11,9 +11,9 @@
         stop('unexpected ... args')
     nIdxs <- nargs() - 1 - (!missing(value))
     if (nIdxs==1)
-        y <- x[i, details=TRUE]
+        y <- x[i, details=TRUE, backfill=FALSE]
     else if (nIdxs==2)
-        y <- x[i, j, details=TRUE]
+        y <- x[i, j, details=TRUE, backfill=FALSE]
     else
         stop('unexpected number of indices')
     if (inherits(x$dates, 'Date'))
@@ -24,7 +24,8 @@
         y$i <- y$i.idx
     # get the values in the same order as the indices in y
     kv <- if (is.null(y$kk)) value else value[y$kk]
-    dd <- data.frame(i=y$i, j=x$ids[y$j.idx], old=y$val, new=kv, row.names=NULL, stringsAsFactors=FALSE)
+    dd <- data.frame(i=y$i, j=x$ids[y$j.idx], val.idx=y$val.idx,
+                     old=y$val, new=kv, row.names=NULL, stringsAsFactors=FALSE)
     # Have to be careful looking to delete rows where new!=old
     # because one new value can make another new value relevant.
     # E.g., if exising data is 4,4,4, and the change is to 2,4,4

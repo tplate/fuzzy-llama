@@ -1,5 +1,5 @@
 useDynLib(sparsetsmat)
-importFrom(Rcpp, evalCpp)
+importFrom(Rcpp, evalCpp, sourceCpp)
 export(sparsetsmat, add.data, is.virtual.array)
 S3method(sparsetsmat, data.frame)
 S3method(sparsetsmat, matrix)

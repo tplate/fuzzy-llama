@@ -34,7 +34,7 @@
 #'    \item The first column in a matrix index (can be a
 #' dataframe) is interpreted in the same way.
 #' }
-'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE) {
+'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill) {
     if (length(list(...)))
         stop('unexpected ... args')
     nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details))
@@ -144,7 +144,7 @@
     } else {
         stop('j must be numeric or character')
     }
-    rule <- if (x$backfill) c(2,2) else c(1,2)
+    rule <- if (is.logical(backfill) && backfill) c(2,2) else c(1,2)
     if (mat.ind) {
         # group the j's together
         kk <- order(j.idx, i.idx, na.last=TRUE)
@@ -195,17 +195,21 @@
         # need to put val back in the right order
         val[kk] <- val
     } else {
+        kk <- order(i.idx, na.last=TRUE)
+        i.idx.srtd <- isTRUE(all.equal(kk, seq(along=kk)))
+        if (!i.idx.srtd)
+            i.idx <- i.idx[kk]
         # regular indexing, not matrix indexing
         if (length(i.idx)==0 || length(j.idx)==0) {
             val.idx <- integer(0)
-        } else if (FALSE) {
+        } else if (TRUE) {
             # call to C++ for fast indexing
             # j.idx indexes into id.idx and id.noc, which have the start and # of rows
             # for the date and id.
             if (is.double(x$dates))
-                val.idx <- stsm_xt_sqd_ij(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc)
+                val.idx <- stsm_xt_sqd_ij(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
             else if (is.integer(x$dates))
-                val.idx <- stsm_xt_sqi_ij(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc)
+                val.idx <- stsm_xt_sqi_ij(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
             else
                 stop('x$dates is neither integer nor double?')
             if (isTRUE(any(val.idx==0)))
@@ -233,6 +237,12 @@
                 val.idx <- approx(x$dates[k], k, xout=i.idx, method='constant', ties='ordered', rule=rule)$y
                 return(val.idx)
             }), use.names=FALSE)
+        }
+        if (!i.idx.srtd) {
+            # return i.idx to its original order and val.idx correspondingly
+            # when kk = order(x) the reverse of x[kk] is replace(x, kk, x[kk])
+            i.idx <- replace(1L, kk, i.idx)
+            val.idx <- replace(1L, rep(seq(0,len=length(j.idx), by=length(i.idx)), each=length(i.idx)) + kk, val.idx)
         }
         if (details)
             return(list(mat.idx=FALSE, i.idx=i.idx, j.idx=j.idx,
