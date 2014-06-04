@@ -603,10 +603,6 @@ is.true <- function(x) (x & !is.na(x))
 # "storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
 "[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- you must work with the sub-arrays)')
 
-is.virtual.array.varray <- function(x) TRUE
-is.virtual.array.default <- function(x) FALSE
-is.virtual.array <- function(x) UseMethod('is.virtual.array')
-
 rm.varray <- function(x, list=NULL) {
     if (is.null(list)) {
         x.name <- substitute(x)
