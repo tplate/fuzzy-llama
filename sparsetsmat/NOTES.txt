@@ -3,3 +3,5 @@ library(Rcpp)
 sourceCpp('pkg/src/Extract.cpp')
 source.pkg('sparsetsmat')
 xtfast(m3.tsm,3:7,1:6)
+
+Rcpp::compileAttributes('pkg', T)

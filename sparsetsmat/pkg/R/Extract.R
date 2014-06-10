@@ -34,10 +34,10 @@
 #'    \item The first column in a matrix index (can be a
 #' dataframe) is interpreted in the same way.
 #' }
-'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill) {
+'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill, Cpp=FALSE) {
     if (length(list(...)))
         stop('unexpected ... args')
-    nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details))
+    nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details)) - (!missing(backfill)) - (!missing(Cpp))
     mat.ind <- FALSE
     if (missing(i))
         i <- x$all.dates
@@ -154,6 +154,17 @@
         jj.idx <- c(match(j.idx.unq, j.idx), length(j.idx)+1)
         if (length(j.idx.unq)==0) {
             val.idx <- 0
+        } else if (Cpp) {
+            if (Cpp==-1)
+                val.idx <- stsm_xt_mir(as.double(i.idx), j.idx, x$dates, x$id.idx, x$id.noc, backfill)
+            else if (is.double(x$dates))
+                val.idx <- stsm_xt_mid(as.double(i.idx), j.idx, x$dates, x$id.idx, x$id.noc, backfill)
+            else if (is.integer(x$dates))
+                val.idx <- stsm_xt_mii(as.integer(i.idx), j.idx, as.integer(x$dates), x$id.idx, x$id.noc, backfill)
+            else
+                stop('x$dates is neither integer nor double?')
+            if (isTRUE(any(val.idx==0)))
+                stop('internal error: have some val.idx==0')
         } else if (length(j.idx.unq)==1) {
             if (is.na(j.idx.unq) || x$id.noc[j.idx.unq] == 0) {
                 val.idx <- replace(integer(length(i.idx)), TRUE, NA)
@@ -202,14 +213,14 @@
         # regular indexing, not matrix indexing
         if (length(i.idx)==0 || length(j.idx)==0) {
             val.idx <- integer(0)
-        } else if (TRUE) {
+        } else if (Cpp) {
             # call to C++ for fast indexing
             # j.idx indexes into id.idx and id.noc, which have the start and # of rows
             # for the date and id.
             if (is.double(x$dates))
-                val.idx <- stsm_xt_sqd_ij(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
+                val.idx <- stsm_xt_sqd(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
             else if (is.integer(x$dates))
-                val.idx <- stsm_xt_sqi_ij(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
+                val.idx <- stsm_xt_sqi(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
             else
                 stop('x$dates is neither integer nor double?')
             if (isTRUE(any(val.idx==0)))
@@ -264,4 +275,41 @@
         }
     }
     return(val)
+}
+stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
+    # Non-vectorized version for translation to Rcpp.
+    # The values in j.idx are grouped and are indices into id.idx and id.noc.
+    # The values in id.idx are indices into dates.
+    # The values in id.noc are the number of dates for that id.
+    # The values in i.idx are asc sorted within groups of j.idx and are
+    # directly comparable with the values in dates
+    # Both i.idx and dates are sorted in groups of ids.
+    # The return values are indices into dates.
+    # Initialize the result with NA values.
+    val.idx <- rep(as.integer(NA), length(i.idx))
+    i <- 1 # index into i.idx and j.idx
+    while (i <= length(i.idx)) {
+        j <- j.idx[i]
+        # Process all of this id group together
+        if (id.noc[j] == 0) {
+            # No data for this id at all
+            while (i <= length(i.idx) && j.idx[i] == j) {
+                i <- i+1
+            }
+        } else {
+            k <- s <- id.idx[j]
+            e <- s + id.noc[j] - 1
+            d <- dates[k]
+            while (i <= length(i.idx) && j.idx[i] == j) {
+                # increase k until dates[k] is the largest still
+                # smaller than i.idx[i]
+                while (k < e && dates[k+1] <= i.idx[i])
+                    k <- k + 1
+                if (backfill || i.idx[i] >= dates[k])
+                    val.idx[i] <- k
+                i <- i+1
+            }
+        }
+    }
+    val.idx
 }

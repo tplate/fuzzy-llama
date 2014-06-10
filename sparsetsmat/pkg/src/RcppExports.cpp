@@ -20,9 +20,9 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// stsm_xt_sqi_ij
-Rcpp::IntegerVector stsm_xt_sqi_ij(const Rcpp::IntegerVector x_date, const Rcpp::IntegerVector i_idx, const Rcpp::IntegerVector j_idx, const Rcpp::IntegerVector id_idx, const Rcpp::IntegerVector id_noc, const int backfill);
-RcppExport SEXP sparsetsmat_stsm_xt_sqi_ij(SEXP x_dateSEXP, SEXP i_idxSEXP, SEXP j_idxSEXP, SEXP id_idxSEXP, SEXP id_nocSEXP, SEXP backfillSEXP) {
+// stsm_xt_sqi
+Rcpp::IntegerVector stsm_xt_sqi(const Rcpp::IntegerVector x_date, const Rcpp::IntegerVector i_idx, const Rcpp::IntegerVector j_idx, const Rcpp::IntegerVector id_idx, const Rcpp::IntegerVector id_noc, const int backfill);
+RcppExport SEXP sparsetsmat_stsm_xt_sqi(SEXP x_dateSEXP, SEXP i_idxSEXP, SEXP j_idxSEXP, SEXP id_idxSEXP, SEXP id_nocSEXP, SEXP backfillSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
@@ -33,16 +33,16 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_idx(id_idxSEXP );
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_noc(id_nocSEXP );
         Rcpp::traits::input_parameter< const int >::type backfill(backfillSEXP );
-        Rcpp::IntegerVector __result = stsm_xt_sqi_ij(x_date, i_idx, j_idx, id_idx, id_noc, backfill);
+        Rcpp::IntegerVector __result = stsm_xt_sqi(x_date, i_idx, j_idx, id_idx, id_noc, backfill);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// stsm_xt_sqd_ij
-Rcpp::IntegerVector stsm_xt_sqd_ij(const Rcpp::DoubleVector x_date, const Rcpp::DoubleVector i_idx, const Rcpp::IntegerVector j_idx, const Rcpp::IntegerVector id_idx, const Rcpp::IntegerVector id_noc, const int backfill);
-RcppExport SEXP sparsetsmat_stsm_xt_sqd_ij(SEXP x_dateSEXP, SEXP i_idxSEXP, SEXP j_idxSEXP, SEXP id_idxSEXP, SEXP id_nocSEXP, SEXP backfillSEXP) {
+// stsm_xt_sqd
+Rcpp::IntegerVector stsm_xt_sqd(const Rcpp::DoubleVector x_date, const Rcpp::DoubleVector i_idx, const Rcpp::IntegerVector j_idx, const Rcpp::IntegerVector id_idx, const Rcpp::IntegerVector id_noc, const int backfill);
+RcppExport SEXP sparsetsmat_stsm_xt_sqd(SEXP x_dateSEXP, SEXP i_idxSEXP, SEXP j_idxSEXP, SEXP id_idxSEXP, SEXP id_nocSEXP, SEXP backfillSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
@@ -53,37 +53,47 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_idx(id_idxSEXP );
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_noc(id_nocSEXP );
         Rcpp::traits::input_parameter< const int >::type backfill(backfillSEXP );
-        Rcpp::IntegerVector __result = stsm_xt_sqd_ij(x_date, i_idx, j_idx, id_idx, id_noc, backfill);
+        Rcpp::IntegerVector __result = stsm_xt_sqd(x_date, i_idx, j_idx, id_idx, id_noc, backfill);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// stsm_xt_mati_ij
-int stsm_xt_mati_ij(const int x_date);
-RcppExport SEXP sparsetsmat_stsm_xt_mati_ij(SEXP x_dateSEXP) {
+// stsm_xt_mii
+Rcpp::IntegerVector stsm_xt_mii(const Rcpp::IntegerVector i_idx, const Rcpp::IntegerVector j_idx, const Rcpp::IntegerVector x_date, const Rcpp::IntegerVector id_idx, const Rcpp::IntegerVector id_noc, const int backfill);
+RcppExport SEXP sparsetsmat_stsm_xt_mii(SEXP i_idxSEXP, SEXP j_idxSEXP, SEXP x_dateSEXP, SEXP id_idxSEXP, SEXP id_nocSEXP, SEXP backfillSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const int >::type x_date(x_dateSEXP );
-        int __result = stsm_xt_mati_ij(x_date);
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type i_idx(i_idxSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type j_idx(j_idxSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type x_date(x_dateSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_idx(id_idxSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_noc(id_nocSEXP );
+        Rcpp::traits::input_parameter< const int >::type backfill(backfillSEXP );
+        Rcpp::IntegerVector __result = stsm_xt_mii(i_idx, j_idx, x_date, id_idx, id_noc, backfill);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// stsm_xt_matd_ij
-int stsm_xt_matd_ij(const double x_date);
-RcppExport SEXP sparsetsmat_stsm_xt_matd_ij(SEXP x_dateSEXP) {
+// stsm_xt_mid
+Rcpp::IntegerVector stsm_xt_mid(const Rcpp::DoubleVector i_idx, const Rcpp::IntegerVector j_idx, const Rcpp::DoubleVector x_date, const Rcpp::IntegerVector id_idx, const Rcpp::IntegerVector id_noc, const int backfill);
+RcppExport SEXP sparsetsmat_stsm_xt_mid(SEXP i_idxSEXP, SEXP j_idxSEXP, SEXP x_dateSEXP, SEXP id_idxSEXP, SEXP id_nocSEXP, SEXP backfillSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const double >::type x_date(x_dateSEXP );
-        int __result = stsm_xt_matd_ij(x_date);
+        Rcpp::traits::input_parameter< const Rcpp::DoubleVector >::type i_idx(i_idxSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type j_idx(j_idxSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::DoubleVector >::type x_date(x_dateSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_idx(id_idxSEXP );
+        Rcpp::traits::input_parameter< const Rcpp::IntegerVector >::type id_noc(id_nocSEXP );
+        Rcpp::traits::input_parameter< const int >::type backfill(backfillSEXP );
+        Rcpp::IntegerVector __result = stsm_xt_mid(i_idx, j_idx, x_date, id_idx, id_noc, backfill);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

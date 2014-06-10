@@ -5,19 +5,19 @@ wia <- function(i) {
     .Call('sparsetsmat_wia', PACKAGE = 'sparsetsmat', i)
 }
 
-stsm_xt_sqi_ij <- function(x_date, i_idx, j_idx, id_idx, id_noc, backfill) {
-    .Call('sparsetsmat_stsm_xt_sqi_ij', PACKAGE = 'sparsetsmat', x_date, i_idx, j_idx, id_idx, id_noc, backfill)
+stsm_xt_sqi <- function(x_date, i_idx, j_idx, id_idx, id_noc, backfill) {
+    .Call('sparsetsmat_stsm_xt_sqi', PACKAGE = 'sparsetsmat', x_date, i_idx, j_idx, id_idx, id_noc, backfill)
 }
 
-stsm_xt_sqd_ij <- function(x_date, i_idx, j_idx, id_idx, id_noc, backfill) {
-    .Call('sparsetsmat_stsm_xt_sqd_ij', PACKAGE = 'sparsetsmat', x_date, i_idx, j_idx, id_idx, id_noc, backfill)
+stsm_xt_sqd <- function(x_date, i_idx, j_idx, id_idx, id_noc, backfill) {
+    .Call('sparsetsmat_stsm_xt_sqd', PACKAGE = 'sparsetsmat', x_date, i_idx, j_idx, id_idx, id_noc, backfill)
 }
 
-stsm_xt_mati_ij <- function(x_date) {
-    .Call('sparsetsmat_stsm_xt_mati_ij', PACKAGE = 'sparsetsmat', x_date)
+stsm_xt_mii <- function(i_idx, j_idx, x_date, id_idx, id_noc, backfill) {
+    .Call('sparsetsmat_stsm_xt_mii', PACKAGE = 'sparsetsmat', i_idx, j_idx, x_date, id_idx, id_noc, backfill)
 }
 
-stsm_xt_matd_ij <- function(x_date) {
-    .Call('sparsetsmat_stsm_xt_matd_ij', PACKAGE = 'sparsetsmat', x_date)
+stsm_xt_mid <- function(i_idx, j_idx, x_date, id_idx, id_noc, backfill) {
+    .Call('sparsetsmat_stsm_xt_mid', PACKAGE = 'sparsetsmat', i_idx, j_idx, x_date, id_idx, id_noc, backfill)
 }
 

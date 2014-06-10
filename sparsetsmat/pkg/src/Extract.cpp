@@ -16,7 +16,7 @@ int wia(const int i) {
 // id_noc
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector stsm_xt_sqi_ij(
+Rcpp::IntegerVector stsm_xt_sqi(
 		   const Rcpp::IntegerVector x_date,
 		   const Rcpp::IntegerVector i_idx,
 		   const Rcpp::IntegerVector j_idx,
@@ -60,7 +60,7 @@ Rcpp::IntegerVector stsm_xt_sqi_ij(
 // id_noc
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector stsm_xt_sqd_ij(
+Rcpp::IntegerVector stsm_xt_sqd(
 		   const Rcpp::DoubleVector x_date,
 		   const Rcpp::DoubleVector i_idx,
 		   const Rcpp::IntegerVector j_idx,
@@ -68,7 +68,7 @@ Rcpp::IntegerVector stsm_xt_sqd_ij(
 		   const Rcpp::IntegerVector id_noc,
 		   const int backfill) {
     Rcpp::IntegerVector val_idx(i_idx.size() * j_idx.size());
-    int i, j, ii, s, e, k;
+    int i, ii, j, s, e, k;
     double d;
     // i_idx indexes into x_date
     // j_idx indexes into id_idx
@@ -103,23 +103,63 @@ Rcpp::IntegerVector stsm_xt_sqd_ij(
 // j_idx
 // id_idx
 // id_noc
+// j is sorted, i is sorted within j
 
 // [[Rcpp::export]]
-int stsm_xt_mati_ij(const int x_date) {
-    return(-1);
+Rcpp::IntegerVector stsm_xt_mii(
+		   const Rcpp::IntegerVector i_idx,
+		   const Rcpp::IntegerVector j_idx,
+		   const Rcpp::IntegerVector x_dates,
+		   const Rcpp::IntegerVector id_idx,
+		   const Rcpp::IntegerVector id_noc,
+		   const int backfill) {
+    Rcpp::IntegerVector val_idx(i_idx.size());
+    int i, j, s, e, k, d;
+    i = 0; // index into i.idx and j.idx
+    while (i < i_idx.size()) {
+        j = j_idx[i] - 1;
+	// Process all of this id group together
+        if (id_noc[j] == 0) {
+            // No data for this id at all
+            while (i < i_idx.size() && j_idx[i] == j+1) {
+		i++;
+	    }
+        } else {
+            k = s = id_idx[j] - 1;
+            e = s + id_noc[j] - 1;
+            d = x_dates[k];
+            while (i < i_idx.size() && j_idx[i] == j+1) {
+		// increase k until x_dates[k] is the largest still
+		// smaller than i.idx[i]
+		while (k < e && x_dates[k+1] <= i_idx[i])
+		    k = k + 1;
+		if (backfill || i_idx[i] >= x_dates[k])
+		    val_idx[i] = k;
+		i++;
+	    }
+        }
+    }
+    return(val_idx);
 }
 
 // stsm_xt_matd_ij
 // Returns indices into x$value for x[cbind(i,j)] indexing
-// i_idx and x_date are double
-// x_date
+// i_idx and x_dates are double
+// x_dates
 // i_idx
 // j_idx
 // id_idx
 // id_noc
 
 // [[Rcpp::export]]
-int stsm_xt_matd_ij(const double x_date) {
-    return(-1);
+Rcpp::IntegerVector stsm_xt_mid(
+		   const Rcpp::DoubleVector i_idx,
+		   const Rcpp::IntegerVector j_idx,
+		   const Rcpp::DoubleVector x_dates,
+		   const Rcpp::IntegerVector id_idx,
+		   const Rcpp::IntegerVector id_noc,
+		   const int backfill) {
+    Rcpp::IntegerVector val_idx(i_idx.size());
+    return(val_idx);
 }
 
