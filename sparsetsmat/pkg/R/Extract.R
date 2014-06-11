@@ -1,29 +1,44 @@
+#' Extract.sparsetsmat
+#'
 #' Extract an ordinary sub-matrix or value from a sparsetsmat object.
 #'
-#' @param x
-#' @param i
-#' @param j
-#' @param drop
+#' @param x a sparsetsmat object
+#'
+#' @param i the row indices, can be numeric, character, Date
+#' or POSIXct, or a 2-column matrix or dataframe for matrix
+#' indexing
+#'
+#' @param j the j indices, can be numeric, character or NULL
+#' in the case of matrix indexing
+#'
+#' @param drop logical, default TRUE
 #'
 #' @param vidx logical If TRUE, return integer index of the
 #' unique values, rather than the values themselves.  The
 #' returned integers index into \code{values(x)} (the sorted
 #' unique values in \code{x}).
 #'
-#' @param details logical If TRUE, return a list with the normalized indices and values.
+#' @param details logical If TRUE, return a list with the
+#' normalized indices and values.
+#'
+#' @param backfill logical If TRUE, use the oldest data for
+#' earlier dates.
+#'
+#' @param Cpp logical If TRUE, use fast C++ code
 #'
 #' @details
 #'
 #' Rules for interpreting i: \itemize{
 #'
-#'    \item If the time index is numeric, then i is
-#' interpreted as a value, i.e., i is not interpreted as a
-#' positional.  E.g., with a numeric time index, an i value
-#' of 17 does not refer to the 17th row, rather it refers to
-#' the value 17.  Similarly, with a numeric time index, an i
-#' value of -3 does not result in dropping the 3rd row of
-#' the matrix, rather it refers to a time value of -3 (and
-#' negative numeric time indices can be stored).
+#'    \item If the time index is numeric (not a Date or
+#' POSIXct), then i is always interpreted as a value, i.e.,
+#' i cannot be interpreted as positional in this case.
+#' E.g., with a numeric time index, an i value of 17 does
+#' not refer to the 17th row, rather it refers to the value
+#' 17.  Similarly, with a numeric time index, an i value of
+#' -3 does not result in dropping the 3rd row of the matrix,
+#' rather it refers to a time value of -3 (and negative
+#' numeric time indices can be stored).
 #'
 #'    \item If the time index is a date, then if i is
 #' numeric, it is an index (positional), else if i is
@@ -34,7 +49,7 @@
 #'    \item The first column in a matrix index (can be a
 #' dataframe) is interpreted in the same way.
 #' }
-'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill, Cpp=FALSE) {
+'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill, Cpp=TRUE) {
     if (length(list(...)))
         stop('unexpected ... args')
     nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details)) - (!missing(backfill)) - (!missing(Cpp))
@@ -286,7 +301,7 @@ stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
     # Both i.idx and dates are sorted in groups of ids.
     # The return values are indices into dates.
     # Initialize the result with NA values.
-    val.idx <- rep(as.integer(NA), length(i.idx))
+    val.idx <- rep(as.integer(0), length(i.idx))
     i <- 1 # index into i.idx and j.idx
     while (i <= length(i.idx)) {
         j <- j.idx[i]
@@ -294,6 +309,7 @@ stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
         if (id.noc[j] == 0) {
             # No data for this id at all
             while (i <= length(i.idx) && j.idx[i] == j) {
+                val.idx[i] <- NA
                 i <- i+1
             }
         } else {
@@ -307,6 +323,8 @@ stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
                     k <- k + 1
                 if (backfill || i.idx[i] >= dates[k])
                     val.idx[i] <- k
+                else
+                    val.idx[i] <- NA
                 i <- i+1
             }
         }

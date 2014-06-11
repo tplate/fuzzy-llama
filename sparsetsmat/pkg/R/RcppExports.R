@@ -13,11 +13,11 @@ stsm_xt_sqd <- function(x_date, i_idx, j_idx, id_idx, id_noc, backfill) {
     .Call('sparsetsmat_stsm_xt_sqd', PACKAGE = 'sparsetsmat', x_date, i_idx, j_idx, id_idx, id_noc, backfill)
 }
 
-stsm_xt_mii <- function(i_idx, j_idx, x_date, id_idx, id_noc, backfill) {
-    .Call('sparsetsmat_stsm_xt_mii', PACKAGE = 'sparsetsmat', i_idx, j_idx, x_date, id_idx, id_noc, backfill)
+stsm_xt_mii <- function(i_idx, j_idx, x_dates, id_idx, id_noc, backfill) {
+    .Call('sparsetsmat_stsm_xt_mii', PACKAGE = 'sparsetsmat', i_idx, j_idx, x_dates, id_idx, id_noc, backfill)
 }
 
-stsm_xt_mid <- function(i_idx, j_idx, x_date, id_idx, id_noc, backfill) {
-    .Call('sparsetsmat_stsm_xt_mid', PACKAGE = 'sparsetsmat', i_idx, j_idx, x_date, id_idx, id_noc, backfill)
+stsm_xt_mid <- function(i_idx, j_idx, x_dates, id_idx, id_noc, backfill) {
+    .Call('sparsetsmat_stsm_xt_mid', PACKAGE = 'sparsetsmat', i_idx, j_idx, x_dates, id_idx, id_noc, backfill)
 }
 

@@ -1,3 +1,5 @@
+#' sparsetsmat
+#'
 #' Sparse storage of persistent time-series data
 #'
 #' @param drop.unneeded.dates Logical.  If TRUE, dates where
@@ -51,8 +53,6 @@
 #' values are vectors of the same length.  The identifier
 #' indices are the starting indices for each identifier in \code{id.idx}.
 #'
-
-non.null <- function(x, y) if (!is.null(x)) x else y
 
 sparsetsmat <- function(x, ...) UseMethod('sparsetsmat')
 
@@ -198,3 +198,6 @@ sparsetsmat.default <- function(x,
 }
 
 sparsetsmat.matrix <- sparsetsmat.default
+
+non.null <- function(x, y) if (!is.null(x)) x else y
+

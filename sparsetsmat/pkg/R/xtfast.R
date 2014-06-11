@@ -1,4 +1,5 @@
-xtfast <- function(x, i, j, ..., drop=TRUE, vidx=FALSE) {
+# obselete
+xtfast.obselete <- function(x, i, j, ..., drop=TRUE, vidx=FALSE) {
     if (length(list(...)))
         stop('unexpected ... args')
     nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx))
@@ -162,9 +163,9 @@ xtfast <- function(x, i, j, ..., drop=TRUE, vidx=FALSE) {
         # j.idx indexes into id.idx and id.noc, which have the start and # of rows
         # for the date and id.
         if (is.double(x$dates))
-            val.idx <- stsm_xt_sqd_ij(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc)
+            val.idx <- stsm_xt_sqd(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc)
         else if (is.integer(x$dates))
-            val.idx <- stsm_xt_sqi_ij(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc)
+            val.idx <- stsm_xt_sqi(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc)
         else
             stop('x$dates is neither integer nor double?')
         if (isTRUE(any(val.idx==0)))

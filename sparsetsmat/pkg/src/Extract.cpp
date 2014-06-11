@@ -122,6 +122,7 @@ Rcpp::IntegerVector stsm_xt_mii(
         if (id_noc[j] == 0) {
             // No data for this id at all
             while (i < i_idx.size() && j_idx[i] == j+1) {
+		val_idx[i] = NA_INTEGER;
 		i++;
 	    }
         } else {
@@ -134,7 +135,9 @@ Rcpp::IntegerVector stsm_xt_mii(
 		while (k < e && x_dates[k+1] <= i_idx[i])
 		    k = k + 1;
 		if (backfill || i_idx[i] >= x_dates[k])
-		    val_idx[i] = k;
+		    val_idx[i] = k + 1; // for 1-based indexing
+		else
+		    val_idx[i] = NA_INTEGER;
 		i++;
 	    }
         }
@@ -142,7 +145,7 @@ Rcpp::IntegerVector stsm_xt_mii(
     return(val_idx);
 }
 
-// stsm_xt_matd_ij
+// stsm_xt_mid
 // Returns indices into x$value for x[cbind(i,j)] indexing
 // i_idx and x_dates are double
 // x_dates
@@ -160,6 +163,35 @@ Rcpp::IntegerVector stsm_xt_mid(
 		   const Rcpp::IntegerVector id_noc,
 		   const int backfill) {
     Rcpp::IntegerVector val_idx(i_idx.size());
+    int i, j;
+    double k, e, s, d;
+    i = 0; // index into i.idx and j.idx
+    while (i < i_idx.size()) {
+        j = j_idx[i] - 1;
+	// Process all of this id group together
+        if (id_noc[j] == 0) {
+            // No data for this id at all
+            while (i < i_idx.size() && j_idx[i] == j+1) {
+		val_idx[i] = NA_INTEGER;
+		i++;
+	    }
+        } else {
+            k = s = id_idx[j] - 1;
+            e = s + id_noc[j] - 1;
+            d = x_dates[k];
+            while (i < i_idx.size() && j_idx[i] == j+1) {
+		// increase k until x_dates[k] is the largest still
+		// smaller than i.idx[i]
+		while (k < e && x_dates[k+1] <= i_idx[i])
+		    k = k + 1;
+		if (backfill || i_idx[i] >= x_dates[k])
+		    val_idx[i] = k + 1; // for 1-based indexing
+		else
+		    val_idx[i] = NA_INTEGER;
+		i++;
+	    }
+        }
+    }
     return(val_idx);
 }
 
