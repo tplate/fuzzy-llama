@@ -2,6 +2,8 @@
 #'
 #' Extract an ordinary sub-matrix or value from a sparsetsmat object.
 #'
+#' @method [ sparsetsmat
+#'
 #' @param x a sparsetsmat object
 #'
 #' @param i the row indices, can be numeric, character, Date
@@ -25,6 +27,8 @@
 #' earlier dates.
 #'
 #' @param Cpp logical If TRUE, use fast C++ code
+#'
+#' @param ... required by the generic, but extra arguments not described here are now alowed.
 #'
 #' @details
 #'
@@ -291,6 +295,7 @@
     }
     return(val)
 }
+
 stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
     # Non-vectorized version for translation to Rcpp.
     # The values in j.idx are grouped and are indices into id.idx and id.noc.

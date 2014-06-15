@@ -1,5 +1,48 @@
+
+#' Add data to an object
+#' @rdname add.data
+#' @param x An object to add data to, either specified by name or by value.
+#' If specified by name (as a character vector), the object is changed in place.
+
 add.data <- function(x, ...) UseMethod('add.data')
-add.data.sparsetsmat <- function(x, newdata, ..., sort.ids=non.null(x$sort.ids, FALSE), drop.unneeded.dates=TRUE, direct.df=TRUE) {
+
+#' @rdname add.data
+#' @method add.data default
+
+add.data.default <- function(x, ...) {
+    if (is.character(x) && length(x)==1) {
+        x.loc <- find(x, numeric=TRUE)
+        y <- get(x)
+        z <- add.data(y, ...)
+        assign(x, value=z, pos=x.loc[1])
+    } else {
+        stop('cannot handle object with class ', class(x))
+    }
+}
+
+#' @rdname add.data
+#' @method add.data sparsetsmat
+#' @param newdata The new data to add to the object.  Can be a dataframe, a sparsetsmat object, or matrix data.
+#' @param ... additional arguments.
+#' @param sort.ids Same as for \code{sparsetsmat}.
+#' @param drop.unneeded.dates Same as for \code{sparsetsmat}.
+#' @param direct.df If TRUE, treat newdata as a standard
+#' data.frame representation of a sparse tsmat object; i.e.,
+#' dates are in column 1, ids in column 2, and values in
+#' column 3.  If FALSE, \code{sparsetsmat(newdata, ...)} is
+#' used to convert \code{newdata} to a sparsetsmat object.
+#'
+#' @details Data is added to a sparsetsmat object by
+#' converting both to data.frames, rbinding, and then
+#' converting back to sparsetsmat objects.
+#'
+add.data.sparsetsmat <- function(x,
+                                 newdata,
+                                 ...,
+                                 sort.ids=non.null(x$sort.ids, FALSE),
+                                 drop.unneeded.dates=TRUE,
+                                 direct.df=TRUE) {
+    x.is.named <- FALSE
     x.df <- as.data.frame(x)
     new.ids <- NULL
     if (inherits(newdata, 'data.frame')) {
@@ -9,7 +52,7 @@ add.data.sparsetsmat <- function(x, newdata, ..., sort.ids=non.null(x$sort.ids, 
             new.df <- newdata
             new.ids <- unique(newdata[[2]])
         } else {
-            new.tsm <- sparsetsmat(newdata, ...)
+            new.tsm <- sparsetsmat(newdata, ..., sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates)
             new.df <- as.data.frame(new.tsm)
         }
         if (any(colnames(new.df) != colnames(x.df)))

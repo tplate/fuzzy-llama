@@ -30,6 +30,8 @@ normalized indices and values.}
 earlier dates.}
 
 \item{Cpp}{logical If TRUE, use fast C++ code}
+
+\item{...}{required by the generic, but extra arguments not described here are now alowed.}
 }
 \description{
 Extract an ordinary sub-matrix or value from a sparsetsmat object.

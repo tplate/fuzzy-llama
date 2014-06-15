@@ -2,6 +2,19 @@
 #'
 #' Sparse storage of persistent time-series data
 #'
+#' @param x an object with data for a sparsetsmat: either a
+#' data frame or a dense matrix
+#'
+#' @param date.col The column of the data frame to get dates from (default = 1)
+#' @param id.col The column of the data frame to get id from (default = 2)
+#' @param value.col The column of the data frame to get values from (default = 3)
+#' @param ids The complete set of ids to use.
+#' @param sort.ids Should ids be sorted?  Affects how new data added to the object is treated. Default FALSE.
+#' @param backfill Should a query with a data earlier than any for a particular id in the data get the value associated with the first date present in the data? Default FALSE.
+#' @param keep.df.names Record the data frame column names so that when as.data.frame() is used on the sparsetsmat object, original names can be used?  Default TRUE.
+#' @param POSIX Should dates be POSIXct or Date? Default FALSE.
+#' @param tz Time zone to use for dates, default is UTC.
+#'
 #' @param drop.unneeded.dates Logical.  If TRUE, dates where
 #' no value changes are completely forgotten.  If FALSE,
 #' dates where no values change are still recorded in the
@@ -9,6 +22,8 @@
 #' dates where no value changes do not appear in the
 #' \code{date} component of the returned object.  In both
 #' cases, \code{all.dates} is a sorted version of the dates.
+#'
+#' @param ... additional arguments for constructors
 #'
 #' @return A \code{sparsetsmat} (S3) object with the following components:
 #' \itemize{
@@ -55,6 +70,10 @@
 #'
 
 sparsetsmat <- function(x, ...) UseMethod('sparsetsmat')
+
+#' sparsetsmat
+#' @rdname sparsetsmat
+#' @method sparsetsmat data.frame
 
 sparsetsmat.data.frame <- function(x,
                                    date.col=1, id.col=2, value.col=3,
@@ -120,9 +139,9 @@ sparsetsmat.data.frame <- function(x,
     else
         nm <- c('dates', 'ids', 'values')
     if (inherits(dates, 'POSIXlt'))
-        dates <- as.POSIXct(dates, tz='UTC')
+        dates <- as.POSIXct(dates, tz=tz)
     if (!inherits(dates, 'POSIXct') && POSIX)
-        dates <- as.POSIXct(dates, tz='UTC')
+        dates <- as.POSIXct(dates, tz=tz)
     if (drop.unneeded.dates)
         all.dates <- sort(unique(dates))
     return(structure(list(dates=dates, values=df[,value.col],
@@ -132,12 +151,14 @@ sparsetsmat.data.frame <- function(x,
                      class='sparsetsmat'))
 }
 
+#' sparsetsmat
+#' @rdname sparsetsmat
+#' @method sparsetsmat default
+
 sparsetsmat.default <- function(x,
-                                date.col=1, id.col=2, value.col=3,
                                 ids=attr(x, 'ids'),
                                 sort.ids=non.null(attr(x, 'sort.ids'), FALSE),
                                 backfill=non.null(attr(x, 'backfill'), FALSE),
-                                keep.df.names=TRUE,
                                 drop.unneeded.dates=FALSE,
                                 POSIX=FALSE,
                                 tz='UTC',
@@ -145,7 +166,7 @@ sparsetsmat.default <- function(x,
 {
     if (length(dim(x))!=2)
         stop('expecting data.frame or matrix')
-    # Construct a sparsetsmat from a matrix
+    # Construct a sparsetsmat from a matrix (or a data.frame treated as a matrix)
     # First work out whether we have date or date-times
     d <- rownames(x)
     if (any(is.na(d)))
@@ -160,7 +181,7 @@ sparsetsmat.default <- function(x,
         if (any(is.na(dates)))
             stop('NAs in Date-like(?) rownames on x')
     } else {
-        dates <- as.POSIXct(d, tz='UTC')
+        dates <- as.POSIXct(d, tz=tz)
         if (any(is.na(dates)))
             stop('NAs in date-time(?) rownames on x')
     }
