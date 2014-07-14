@@ -1,4 +1,6 @@
+#' @rdname varray.methods
 vstorage.mode <- function(x, deep=FALSE) UseMethod('vstorage.mode')
+#' @describeIn varray.methods Return the storage mode of the contents of the varray
 vstorage.mode.varray <- function(x, deep=FALSE) {
     if (deep) {
         return(storage.mode(sapply(x$info, function(y) {
@@ -10,7 +12,9 @@ vstorage.mode.varray <- function(x, deep=FALSE) {
         return(storage.mode(sapply(x$info, '[[', 'sample', simplify=TRUE)))
     }
 }
+#' @rdname varray.methods
 `vstorage.mode<-` <- function(x, value) UseMethod('vstorage.mode<-')
+#' @describeIn varray.methods Change the storage mode of the contents of the varray
 `vstorage.mode<-.varray` <- function(x, value) {
     # should use 'x$umode' here?
     x$info <- lapply(x$info, function(y) {

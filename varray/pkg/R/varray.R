@@ -1,3 +1,117 @@
+
+#' Construct a virtual array
+#'
+#' Construct a virtual array by binding together supplied
+#' arrays or matrixes.  Stores only dimension information
+#' and named references to the sub-arrays; does not store
+#' their actual data.
+#'
+#' @param \dots
+#' Either a single  argument being a character vector naming the component sub-arrays, or
+#' multiple arguments, each of which is a single character item or
+#' unquoted name of an object.
+#' Note that extra arguments are ignored for \code{as.array} (they are
+#' only present because the generic has them).
+#'
+#' @param along
+#' The dimension along which to bind (from the user's point of view).
+#'
+#' @param dimorder
+#' The order in which dimensions are stored in the sub-arrays.  The
+#' reverse of this permutation is applied to extract data from the sub-arrays.
+#'
+#' @param env.name
+#' \code{TRUE} or \code{FALSE}, specifiying whether to record the name of
+#' the environment in which the object is found.  If \code{FALSE},
+#' objects are searched for in the global environment.
+#'
+#' @param envir
+#' Where to find the sub-arrays (can be an environment name, or an
+#' environment, as long as the environment can be recovered by \code{as.environment(environmentName(envir))}).
+#'
+#' @param naidxok
+#' Logical value indicating whether the component objects can handle
+#' \code{NA}'s in indices.  Notably, \code{ff} objects cannot.  The
+#' default value is \code{FALSE} for objects that inherit from class
+#' \code{ff} and \code{TRUE} for other objects.
+#'
+#' @param dimnames
+#' Optional dimnames to use instead of the union of dimnames of the
+#' components.
+#' Must be a list of character vectors.  Null components are ignored.
+#' E.g., supplying \code{dimnames=list(NULL, c('a','b','c'))} would tell
+#' varray to use the usual rownames (i.e., the union of the rownames of
+#' the components) but to use \code{c('a','b','c')} as column names.  If
+#' some components have other column names, those other columns will be
+#' inaccessible through the varray object.
+#'
+#' @param comp.name
+#' A character string that records how to construct the name of a
+#' component.  Used in \code{update.ts.varray()}.
+#'
+#' @param keep.ordered
+#' Should dimnames be kept ordered when new elements are added?
+#'
+#' @param umode
+#' The storage mode of the component objects.
+#'
+#' @param fill
+#' The value that is returned instead of implicit NAs (array elements that do not
+#' exist in the explicitly stored data).
+#'
+#' @param x a varray object
+#'
+#' @details
+#' Component arrays are stored by reference (by name.)  At the time of subset
+#' extraction the component arrays will be retrieved.  This creates the
+#' possibility for retrieving an unintended object of the same name.
+#' To minimize this possibility, the environments searched to
+#' find the component arrays are limited to the following:
+#' \itemize{
+#'   \item If \code{env.name} is \code{FALSE}; the global environment and
+#'   the rest of the search path
+#'   \item If \code{env.name} is \code{TRUE}; the supplied environment
+#'   \code{envir}, or, if that was \code{NULL}, the environment in which
+#'   the component was found at the time the \code{varray} was constructed.
+#' }
+#' Note that this makes it currently impossible for a \code{varray} to
+#' refer to objects that reside in an unnamed environment or one not on
+#' the search list of environments.
+#'
+#' All the data associated with a single element of the binding dimension
+#' (the \code{along} dimension) must be stored in a single one of the
+#' component objects.
+#'
+#' \code{rebuild.varray()} rebuilds a varray object and can be used when
+#' the underlying objects have changed.
+#'
+#' @return   \code{varray()} returns an S3 object of class \code{varray}.
+#'  \code{as.array()} returns a standard R array (which is a matrix when
+#'  there are just two dimensions).
+#'
+#' @seealso   \code{\link{[.varray}}
+#'  \code{\link{dim.varray}}
+#'  \code{\link{dimnames.varray}}
+#'  \code{\link{mode.varray}}
+#'  \code{\link{storage.mode.varray}}
+#'
+#' @examples
+#' a <- array(1:6, dim=c(2,3), dimnames=list(letters[1:2],letters[23:25]))
+#' b <- array(7:15, dim=c(3,3), dimnames=list(letters[3:5],letters[24:26]))
+#' x <- varray(a,b)
+#' x1 <- varray('a','b') # equivalent
+#' x2 <- varray(c('a','b')) # equivalent
+#' as.array(x)
+#' x
+#' x[c('a'),c('x','z'),drop=FALSE]
+#' x[c('d','b','c'),c('y','z'),drop=FALSE]
+#' b <- b[-2,]
+#' x <- rebuild.varray(x)
+#'
+#' # fill arg on as.matrix does not replace explicit stored NA's
+#' y <- varray(cbind(A=c(a=1)), cbind(B=c(b=NA)))
+#' as.matrix(y, fill=0)
+
 varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL, keep.ordered=TRUE, umode=NULL, fill=NULL) {
     # Can call like this:
     #    varray(a, b, c)
@@ -138,6 +252,7 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
     return(res)
 }
 
+#' @rdname varray
 rebuild.varray <- function(x) {
     # Rebuild a varray object to update for changes in underlying objects
     info <- lapply(x$info, FUN=function(comp) {
@@ -195,6 +310,20 @@ fixGlobalEnvName <- function(name) {
     else name
 }
 
+
+#' Common matrix and array methods for varray objects
+#'
+#' @param x a varray object
+#' @param i,j,\dots indexing arguments, treated as for ordinary array indexing
+#' @param drop should dimensions with extent 1 in the result be dropped?
+#' @param fill fill value to use in subsetting
+#' @param value new values to use
+#' @param deep should individual components be inspected to determine the result?
+#' @name varray.methods
+varray.methods <- function() NULL
+
+#' @describeIn varray.methods Convert a varray to an ordinary array
+#' @method as.array varray
 as.array.varray <- function(x, ..., fill=x$fill) {
     if (is.null(fill)) fill <- NA
     rdimorder <- order(x$dimorder)
@@ -219,6 +348,8 @@ as.array.varray <- function(x, ..., fill=x$fill) {
     y
 }
 
+#' @describeIn varray.methods Convert a varray to an ordinary matrix
+#' @method as.matrix varray
 as.matrix.varray <- function(x, ..., fill=x$fill) {
     if (is.null(fill)) fill <- NA
     if (length(x$dim)==2)
@@ -230,6 +361,25 @@ as.matrix.varray <- function(x, ..., fill=x$fill) {
 non.null <- function(x, y) if (!is.null(x)) x else y
 
 # as.array does not work on data.frame objects, so make sure to call as.matrix on 2-d objects
+
+#' Convert to ordinary matrix or array
+#'
+#' Shorthand for as.matrix or as.array
+#'
+#' @details
+#'   If \code{x} is an atomic object and is not a virtual array, returns
+#'  \code{x}, otherwise returns \code{as.matrix(x)} if \code{x} has two
+#'  dimensions or \code{as.array(x)} otherwise.
+#' @param x the object to convert
+#' @return An atomic array version of \code{x}
+#' @seealso   \code{link{as.array}} \code{link{as.matrix}}
+#' @examples
+#' x <- varray(cbind(A=c(a=1)), cbind(B=c(b=2)))
+#' x
+#' M(x)
+#' as.array(x, fill=0)
+#' as.matrix(x)
+#' M(x) + 10
 M <- function(x) {
     if (is.atomic(x) && !is.virtual.array)
         return(x)
@@ -239,6 +389,8 @@ M <- function(x) {
         as.matrix(x)
 }
 
+#' @describeIn varray.methods Print info about a varray object (but not the whole object)
+#' @method print varray
 print.varray <- function(x, ...) {
     dot3 <- function(n) if (n<=4) seq(len=n) else c(1,2,NA,n)
     dnsum <- function(i, d, dn) {
@@ -306,12 +458,25 @@ print.varray <- function(x, ...) {
 }
 
 # length.varray <- function(x) prod(x$dim) # messes up str() if we define length, and length(x) != prod(dim(x)) for data.frame
+
+#' @describeIn varray.methods Return dimension size of a varray object
+#' @method dim varray
 dim.varray <- function(x) x$dim
+
+#' @describeIn varray.methods Return dimension names of a varray object
+#' @method dimnames varray
 dimnames.varray <- function(x) x$dimnames
 
+#' @describeIn varray.methods Return 'mode' of data in a varray object
+#' @method mode varray
 mode.varray <- function(x) mode(sapply(x$info, '[[', 'sample'))
+
+#' @describeIn varray.methods Return 'storage.mode' of data in a varray object
+#' @method storage.mode varray
 storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
 
+#' @describeIn varray.methods Returns a subset of a varray objects
+#' @method [ varray
 "[.varray" <- function(x, ..., drop=TRUE) {
     Nidxs <- nargs() - 1 - (!missing(drop))
     d <- x$dim
@@ -596,13 +761,29 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
 
 is.true <- function(x) (x & !is.na(x))
 
+#' @describeIn varray.methods Replacement method for dimnames (stops with error)
+#' @method dimnames<- varray
 "dimnames<-.varray" <- function(x, value) stop('dimnames for varray are read-only')
+#' @describeIn varray.methods Replacement method for dim (stops with error)
+#' @method dim<- varray
 "dim<-.varray" <- function(x, value) stop('dim for varray is read-only')
+#' @describeIn varray.methods Replacement method for length (stops with error)
+#' @method length<- varray
 "length<-.varray" <- function(x, value) stop('length for varray is read-only')
+#' @describeIn varray.methods Replacement method for mode (stops with error)
+#' @method mode<- varray
 "mode<-.varray" <- function(x, value) stop('mode for varray is read-only')
 # "storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
+#' @describeIn varray.methods Replacement method for subset (stops with error)
+#' @method [<- varray
 "[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- you must work with the sub-arrays)')
 
+#' Remove a varray and its component objects
+#' @param x The name of a \code{varray} object to remove, either quoted or unquoted.
+#' @param list A character vector of names of varray objects to be removed.
+#' @details Removes all the component objects of a varray,
+#' then removes the varray object itself.
+#' @return Returns the vector of names of objects as an invisible object.
 rm.varray <- function(x, list=NULL) {
     if (is.null(list)) {
         x.name <- substitute(x)

@@ -1,21 +1,114 @@
-# Not a generic because the first argument is a character string, so methods
-# do not have a class of object to dispatch on.
-# add.data <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) UseMethod('add.data')
+#' Add data to an object
+#'
+#' Update the contents of a Matrix or matrix object, adding new dimension
+#' indices if necessary.
+#'
+#' @param x An object to add data to, either specified by name or by value.
+#' If specified by name (as a character vector), the object is changed in place (i.e., the function will have side effects)
+#'
+#' @param newdata New data to incorporate in the object.
+#' Should have the same number of dimensions as the object
+#' being updated (i.e.,
+#' \code{length(dim(x))==length(dim(newdata))}).  Must have
+#' dimnames.
+#'
+#' @param need.dimnames Dimension names that should be included in the updated object.
+#'
+#' @param keep.ordered Logical.  Specifies which dimensions should be
+#' kept ordered.  Can be a single element or a vector with
+#' length equal to the number of dimensions of
+#' \code{object}.
+#'
+#' @param envir where to find the object, or where to create it if it does not already exist
+#'
+#' @param \dots Not used, but needed because \code{add.data()} could be a generic.
+#'
+#' @details
+#' Can be used in multiple ways, either called as a generic or calling the method directly (to create the object if it does not already exist):
+#' \itemize{
+#' \item
+#' add.data(x, newdata): adds newdata to existing object x and returns the modified x (no side effects)
+#' \item
+#' add.data.Matrix(x, newdata): adds newdata to existing Matrix object x (no side effects)
+#' \item
+#' add.data('x', newdata): adds newdata to existing object named 'x' and saves the modified x (has side effects)
+#' \item
+#' add.data.Matrix('x', newdata): adds newdata to existing Matrix object named 'x' and saves the modified object in 'x' OR if 'x' doesn't exist, creates new Matrix object with contents newdata and saves it in 'x' (has side effects)
+#' }
+#'
+#' @return The altered object \code{x}.  If \code{x} was the
+#' name of an object, then the altered object is also
+#' updated in place.
+#'
+#' @note   Not really closely related to \code{varray} objects, but supplied here
+#'  as a useful analogue to \code{\link{add.tsdata.varray}}.
+#'
+#' @examples
+#' x <- cbind(A=c(a=1))
+#' add.data.matrix('x', cbind(B=c(b=2)))
+#' x
 
-add.data.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) {
+add.data <- function(x, ...) UseMethod('add.data')
+
+#' @describeIn add.data Default method that adds data to a object specified by a character name
+
+add.data.default <- function(x, ...) {
+    if (is.character(x) && length(x)==1 && is.null(dim(x))) {
+        x.pos <- find(x, numeric=TRUE)
+        if (length(x.pos)<1)
+            stop('object ', x, ' does not exist')
+        y <- get(x, pos=x.pos[1])
+        # avoid infinite loops
+        if (is.character(y) && length(x)==1 && is.null(dim(y)))
+            stop('cannot add data to a single-element character string')
+        z <- add.data(y, ...)
+        assign(x, value=z, pos=x.pos[1])
+        return(invisible(z))
+    } else {
+        stop('cannot handle object with class ', class(x))
+    }
+}
+
+#' @describeIn add.data Add data to a Matrix object
+
+add.data.Matrix <- function(x,
+                            newdata,
+                            need.dimnames=list(NULL, NULL),
+                            keep.ordered=TRUE,
+                            ...,
+                            envir=NULL) {
     # have ... args to satisfy the generic add.data()
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
-    va.name <- object
-    if (!is.character(va.name))
-        stop('object must be supplied as character data naming matrix to be updated')
-    if (!exists(va.name)) {
-        x <- Matrix(data, sparse=TRUE)
+    x.name <- NULL
+    newObj <- FALSE
+    if (is.character(x) && length(x)==1 && is.null(dim(x))) {
+        x.name <- x
+        if (is.null(envir)) {
+            x.pos <- find(x.name, numeric=TRUE)
+            if (length(x.pos)>0)
+                envir <- as.environment(x.pos[1])
+            else
+                envir <- globalenv()
+        }
+        if (exists(x, envir=envir)) {
+            x <- get(x.name, envir=envir, inherits=FALSE)
+            if (!inherits(x, 'Matrix'))
+                stop('object ', x.name, ' is not a Matrix')
+        } else {
+            x <- NULL
+            newObj <- TRUE
+        }
     } else {
-        x <- get(va.name)
+        if (!inherits(x, 'Matrix'))
+            stop('x is not a Matrix')
     }
-    dn <- list(unique(c(rownames(x), rownames(data), need.dimnames[[1]])),
-               unique(c(colnames(x), colnames(data), need.dimnames[[2]])))
+    if (!inherits(newdata, 'Matrix') && !is.matrix(newdata))
+        stop('newdata must be a Matrix or a matrix')
+    if (newObj)
+        x <- Matrix(newdata, sparse=TRUE)
+    dn <- list(unique(c(rownames(x), rownames(newdata), need.dimnames[[1]])),
+               unique(c(colnames(x), colnames(newdata), need.dimnames[[2]])))
     keep.ordered <- rep(keep.ordered, length.out=length(dim(x)))
     if (any(keep.ordered))
         dn[keep.ordered] <- lapply(dn[keep.ordered], sort, na.last=NA)
@@ -34,30 +127,57 @@ add.data.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.o
         if (!isTRUE(all.equal(colnames(x), dn[[2]])))
             x <- x[,dn[[2]],drop=FALSE]
     }
-    ii <- cbind(rep(match(rownames(data), rownames(x)), ncol(data)),
-                rep(match(colnames(data), colnames(x)), each=nrow(data)))
-    x[ii] <- as.vector(data)
-    assign(va.name, value=x, pos=1)
+    if (!newObj) {
+        ii <- cbind(rep(match(rownames(newdata), rownames(x)), ncol(newdata)),
+                    rep(match(colnames(newdata), colnames(x)), each=nrow(newdata)))
+        x[ii] <- as.vector(newdata)
+    }
+    if (!is.null(x.name)) {
+        assign(x.name, value=x, envir=envir)
+        return(invisible(x))
+    } else {
+        return(x)
+    }
 }
 
-add.data.matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) {
+#' @describeIn add.data Add data to an ordinary matrix object
+
+add.data.matrix <- function(x,
+                            newdata,
+                            need.dimnames=list(NULL, NULL),
+                            keep.ordered=TRUE,
+                            ...,
+                            envir=NULL) {
     # have ... args to satisfy the generic add.data()
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
-    va.name <- object
-    if (!is.character(va.name))
-        stop('object must be supplied as character data naming matrix to be updated')
-    if (!exists(va.name)) {
-        if (!is.matrix(data))
-            stop('data must be a matrix')
-        x <- data
+    x.name <- NULL
+    newObj <- FALSE
+    if (is.character(x) && length(x)==1 && is.null(dim(x))) {
+        x.name <- x
+        if (is.null(envir)) {
+            x.pos <- find(x.name, numeric=TRUE)
+            if (length(x.pos)>0)
+                envir <- as.environment(x.pos[1])
+            else
+                envir <- globalenv()
+        }
+        if (exists(x, envir=envir)) {
+            x <- get(x.name, envir=envir, inherits=FALSE)
+            if (!is.matrix(x))
+                stop('object ', x.name, ' is not a matrix')
+        } else {
+            x <- NULL
+            newObj <- TRUE
+        }
     } else {
-        x <- get(va.name)
         if (!is.matrix(x))
-            stop(va.name, ' already exists but is not a matrix')
+            stop('x is not a matrix')
     }
-    dn <- list(unique(c(rownames(x), rownames(data), need.dimnames[[1]])),
-               unique(c(colnames(x), colnames(data), need.dimnames[[2]])))
+    if (newObj)
+        x <- as.matrix(newdata)
+    dn <- list(unique(c(rownames(x), rownames(newdata), need.dimnames[[1]])),
+               unique(c(colnames(x), colnames(newdata), need.dimnames[[2]])))
     keep.ordered <- rep(keep.ordered, length.out=length(dim(x)))
     if (any(keep.ordered))
         dn[keep.ordered] <- lapply(dn[keep.ordered], sort, na.last=NA)
@@ -76,8 +196,15 @@ add.data.matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.o
         if (!isTRUE(all.equal(colnames(x), dn[[2]])))
             x <- x[,dn[[2]],drop=FALSE]
     }
-    ii <- cbind(rep(match(rownames(data), rownames(x)), ncol(data)),
-                rep(match(colnames(data), colnames(x)), each=nrow(data)))
-    x[ii] <- as.vector(data)
-    assign(va.name, value=x, pos=1)
+    if (!newObj) {
+        ii <- cbind(rep(match(rownames(newdata), rownames(x)), ncol(newdata)),
+                    rep(match(colnames(newdata), colnames(x)), each=nrow(newdata)))
+        x[ii] <- as.vector(newdata)
+    }
+    if (!is.null(x.name)) {
+        assign(x.name, value=x, envir=envir)
+        return(invisible(x))
+    } else {
+        return(x)
+    }
 }

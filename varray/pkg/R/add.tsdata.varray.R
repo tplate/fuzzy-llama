@@ -1,7 +1,99 @@
-add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%Y', format=va$format,
+#' Add time-series data to an object
+#'
+#' Add time-series data to an object
+#' The only thing that makes an object time series data is that the
+#' dimnames on one dimension are character strings representing parsable
+#' times or dates.
+#'
+#' @param x An object to add time-series data to, either specified by name or by value.
+#' Must have dimnames.
+#' If specified by name (as a character vector), the object is changed in place.
+#'
+#' @param newdata New data to incorporate in the object.
+#' Should have the same number of dimensions as the object
+#' being updated.  Must have dimnames.
+#'
+#' @param comp.name
+#' Base of name to use for the component objects in the varray.
+#' Optional, default value is \code{paste('.', objectName, dateblock)}.
+#' @param dateblock
+#' How to translate dates into blocks.  Ignored if argument
+#' \code{comp.name} is supplied. Default value is \code{"\%Y"}.
+#' @param format
+#' Format for parsing dates (which are supplied as dimension names on the
+#' \code{along} dimension).
+#' @param along
+#' Default is 1.
+#' @param dimorder
+#' Default is standard dim order.
+#' @param env.name
+#' Intended to be the name of the environment where the components exist,
+#' not yet fully tested.
+#' @param envir
+#' Intended to be the environment where the components exist,
+#' not yet fully tested.
+#' @param naidxok
+#' Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.
+#' @param keep.ordered
+#' Logical.  Specifies which dimensions should be kept ordered.  Can be a
+#' single element or a vector with length equal to the number of
+#' dimensions of \code{object}.
+#' @param need.dimnames Dimension names that should be included in the updated object.
+#' @param umode Not used (may be used in the future)
+#' @param store.env.name Not used (may be used in the future)
+#' @param fill The value to fill missing data with in subset operations
+#' @param \dots
+#' Not used, but needed because \code{update()} is a generic.
+#'
+#' @details
+#' Contents of \code{data} are inserted into \code{object}, expanding the
+#' dimensions of \code{object} and creating new component objects if necessary.
+#' \code{update.varray.ts} is an obselete name for \code{add.tsdata.varray}.
+#'
+#'
+#' @return The altered object \code{x}.  If \code{x} was the
+#' name of an object, then the altered object is also
+#' updated in place.
+#'
+#' @seealso Related to \code{\link{add.data}}, but
+#' specialized for time-series data with arguments
+#' specialized for handling dates.
+#' \code{add.data} is the only supplied method for changing \code{\link{varray}} objects.
+#'
+#' @examples
+#' x <- array(1:45, dim=c(15, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=15, by='months')), c('A','B','C')))
+#' y <- array(101:121, dim=c(7, 3), dimnames=list(format(seq(as.Date(rownames(x)[nrow(x)]), len=7, by='months')), c('B','C','D')))
+#' z <- array(1:72, dim=c(24, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=24, by='months')), c('A','B','C')))
+#' add.tsdata.varray('v', z, comp.name='vvv.\%Y', along=1)
+#' as.array(v)
+#' add.tsdata.varray('v', y)
+#' as.array(v)
+
+add.tsdata <- function(x, ...) UseMethod('add.tsdata')
+
+#' @rdname add.tsdata
+#' @method add.tsdata default
+
+add.tsdata.default <- function(x, ...) {
+    if (is.character(x) && length(x)==1) {
+        x.pos <- find(x, numeric=TRUE)
+        y <- get(x)
+        z <- add.tsdata(y, ...)
+        assign(x, value=z, pos=x.pos[1])
+        return(invisible(z))
+    } else {
+        stop('cannot handle object with class ', class(x))
+    }
+}
+
+#' @rdname add.tsdata
+#' @method add.tsdata varray
+
+add.tsdata.varray <- function(x, newdata, comp.name=va$comp.name, dateblock='%Y', format=va$format,
                               # dates.by='bizdays', holidays='NYSEC', vmode='single',
                               along=va$along, dimorder=va$dimorder,
-                              env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
+                              env.name=NULL, envir=NULL, naidxok=va$naidxok,
+                              need.dimnames=list(NULL, NULL),
                               keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE,
                               fill=NA, ...) {
     # have ... args to satisfy the generic function
@@ -11,7 +103,7 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     #   Force use of umode
     #
     # Update a varray that stores time series matrix data.
-    # 'data' is the new data
+    # 'newdata' is the new data
     # Labels on the binding 'along' dimension are dates, stored in order
     # Might need to create new component arrays in the varray.
     # Might need to create new columns in the varray -- though first
@@ -26,18 +118,46 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     # them.
 
     # get 'va' as NULL or the varray
-    va.name <- object
-    if (!is.character(va.name))
-        stop('object must be supplied as character data naming the virtual array')
-    if (exists(va.name)) {
-        va <- get(va.name)
+    # need to set 'va' and possibly 'va.name'
+
+    va.name <- NULL
+    newObj <- FALSE
+    if (is.character(x) && length(x)==1 && is.null(dim(x))) {
+        va.name <- x
+        if (is.null(envir)) {
+            x.pos <- find(va.name, numeric=TRUE)
+            if (length(x.pos)>0)
+                envir <- as.environment(x.pos[1])
+            else
+                envir <- globalenv()
+        }
+        if (exists(x, envir=envir)) {
+            va <- get(va.name, envir=envir, inherits=FALSE)
+            if (!inherits(va, 'varray'))
+                stop('object ', va.name, ' is not a varray')
+        } else {
+            va <- NULL
+            newObj <- TRUE
+        }
     } else {
-        va <- NULL
-    }
-    # and 'adn' and 'ad'; the dimnames & dims of 'va'
-    if (!is.null(va)) {
         if (!inherits(va, 'varray'))
             stop('va is not a varray object')
+        va <- x
+    }
+    # env.name is the name of the environment where components are stored
+    # envir is the environment where the varray is stored (only needed
+    # if va.name is non-null)
+    if (is.null(env.name) && !is.null(va) && !is.null(va$env.name)) {
+        env.name <- va$env.name
+        comp.envir <- as.environment(va$env.name)
+    } else {
+        comp.envir <- globalenv()
+    }
+
+    if (is.null(dim(newdata)))
+        stop('newdata must be a matrix-like object')
+    # and 'adn' and 'ad'; the dimnames & dims of 'va'
+    if (!is.null(va)) {
         adn <- dimnames(va)
         ad <- dim(va)
         for (i in seq(along=va$info)[-1]) {
@@ -46,29 +166,21 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
                      length(va$info[[i]]$dim), ' vs ', length(va$info[[1]]$dim), ' in first')
         }
     } else {
-        adn <- rep(list(character(0)), length(dim(data)))
-        ad <- rep(0, length(dim(data)))
+        adn <- rep(list(character(0)), length(dim(newdata)))
+        ad <- rep(0, length(dim(newdata)))
     }
-    if (along < 1 || along > length(non.null(va$info[[1]]$dim, dim(data))))
-        stop('along must be in 1..', length(non.null(va$info[[1]]$dim, dim(data))))
+    if (along < 1 || along > length(non.null(va$info[[1]]$dim, dim(newdata))))
+        stop('along must be in 1..', length(non.null(va$info[[1]]$dim, dim(newdata))))
 
     if (is.null(comp.name))
-        comp.name <- paste('.', va.name, dateblock, sep='.')
-
-    # get 'envir' and 'env.name'
-    if (identical(env.name, FALSE))
-        env.name <- NULL
-    if (!is.null(envir)) {
-        env.name <- fixGlobalEnvName(environmentName(envir))
-    } else if (is.null(env.name) || identical(env.name, FALSE)) {
-        envir <- .GlobalEnv
-    } else {
-        envir <- as.environment(env.name)
-    }
+        if (!is.null(va.name))
+            comp.name <- paste('.', va.name, dateblock, sep='.')
+        else
+            stop('must supply comp.name or va.name with new object')
 
     # 'ddn' and 'dd' are dimnames and dims of data (the new data)
-    ddn <- dimnames(data)
-    dd <- dim(data)
+    ddn <- dimnames(newdata)
+    dd <- dim(newdata)
     if (!is.null(va) && length(va$info[[1]]$dim) != length(dd))
         stop('component 1 has different dimensionality than data: ',
                      length(va$info[[1]]$dim), ' vs ', length(dd))
@@ -101,7 +213,7 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
         new.scn.u <- setdiff(unique(new.slices.scn), ex.scn)
         expand.comp.i <- match(intersect(unique(new.slices.scn), ex.scn), ex.scn)
         comp.dn.changed <- rep(FALSE, length(all.scn.u))
-        sample <- asub(data, rep(list(1), length(dd)))
+        sample <- asub(newdata, rep(list(1), length(dd)))
         if (is.null(va)) {
             if (is.null(keep.ordered)) keep.ordered <- TRUE
             va <- structure(list(dim=NULL, dimnames=NULL, along=along,
@@ -117,10 +229,10 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
         }
         # if any new sub-components are needed, create them
         for (this.new.scn in new.scn.u) {
-            this.data <- asub(data, new.slices[new.slices.scn==this.new.scn], dims=along, drop=FALSE)
+            this.data <- asub(newdata, new.slices[new.slices.scn==this.new.scn], dims=along, drop=FALSE)
             this.data.dn <- dimnames(this.data)
             # find dimnames that don't have all NA values
-            for (i in seq(length(dim(data))[-along]))
+            for (i in seq(length(dim(newdata))[-along]))
                 this.data.dn[[i]] <- this.data.dn[[i]][apply(this.data, i, function(x) !all(is.na(x)))]
             # do we need to subset this.data down to non-NA data?
             if (!isTRUE(all.equal(dimnames(this.data), this.data.dn)))
@@ -138,7 +250,7 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
             va$info[[j]]$env.name <- env.name
             va$info[[j]]$naidxok <- naidxok
             # will fix 'map' at the end
-            assign(this.new.scn, envir=envir, value=this.datar)
+            assign(this.new.scn, envir=comp.envir, value=this.datar)
         }
         # if we need to add slices to any existing sub-components, we do that below
     } else {
@@ -160,10 +272,10 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
             data.i <- data.ii[this.i == exist.comp.i]
             # add in the indices that are new in the 'along' dimension but belong to this component
             data.i <- union(data.i, which(is.na(ex.ai))[new.slices.scn == va$info[[this.i]]$name])
-            this.data <- asub(data, data.i, dims=along, drop=FALSE)
+            this.data <- asub(newdata, data.i, dims=along, drop=FALSE)
             this.data.dn <- dimnames(this.data)
             # find dimnames that don't have all NA values
-            for (i in seq(length(dim(data))[-along]))
+            for (i in seq(length(dim(newdata))[-along]))
                 this.data.dn[[i]] <- this.data.dn[[i]][apply(this.data, i, function(x) !all(is.na(x)))]
             # do we need to subset this.data down to non-NA data?
             if (!isTRUE(all.equal(dimnames(this.data), this.data.dn)))
@@ -215,6 +327,13 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     # if (!all(dimorder == seq(length(d)))) {d <- d[dimorder]; dn <- dn[dimorder]}
     # We are constructing d and dn in user space here, so don't need to apply dimorder perm
     dn <- mapply(union, adn, ddn, SIMPLIFY=FALSE)
+    if (any(sapply(need.dimnames, length) > 0)) {
+        if (!is.list(need.dimnames))
+            stop('need.dimnames must be list')
+        if (length(need.dimnames) != length(dn))
+            stop('length(need.dimnames) != length(dimnames)')
+        dn <- mapply(union, dn, need.dimnames, simplify=FALSE)
+    }
     d <- sapply(dn, length)
     if (is.null(keep.ordered) || any(keep.ordered))
         dn[keep.ordered] <- lapply(dn[keep.ordered], sort, na.last=TRUE)
@@ -229,6 +348,10 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     va$dimnames <- dn
     if (!is.null(fill) && !is.na(fill))
         va$fill <- fill
-    assign(va.name, value=va, envir=envir)
-    invisible(va)
+    if (!is.null(va.name)) {
+        assign(va.name, value=va, envir=envir)
+        return(invisible(va))
+    } else {
+        return(va)
+    }
 }

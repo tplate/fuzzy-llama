@@ -1,12 +1,18 @@
 Package: varray
-Version: 1.0-10
-Date: 2014-05-07
+Version: 1.0-12
+Date: 2014-07-11
 Title: Create virtual arrays
 Author: Tony Plate <tplate@acm.org>
 Maintainer: Tony Plate <tplate@acm.org>
 Description: Bind together arrays into larger virtual arrays.
-  Data in subarrays is linked by reference.
-Depends: R (>= 1.5.0), abind, Matrix
-Suggests: scriptests
+    Data in subarrays is linked by reference.
+Depends:
+    R (>= 1.5.0)
+Suggests:
+    scriptests
 License: LGPL (>=2)
 Packaged: 2012-05-06 03:10:24 UTC; Tony
+Imports:
+    abind,
+    Matrix
+Roxygen: list(wrap = FALSE)

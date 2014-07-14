@@ -1,16 +1,22 @@
-# make dimensions of x conform to y
-# y can be a set of dimnames, or an object with dimnames
+#' Make matrices or arrays conform with each other by adding or removing dimension elements.
+#'
+#' @param x An object or list of objects to conform
+#' @param \dots The object to conform to, or other objects to conform
+#' @param fill The fill value (default NA)
+#' @param do.all If do.all=="union" or "intersect", all arguments are conformed to the
+#' union (or intersection) of all dimnames, and are returned in a list.
+#' With "union", this is the same behavior as when a list is supplied as the
+#' only argument.
+#' @param along Integer specification of dimensions on which to conform
+#' @param excess.ok
+#' If \code{excess.ok==TRUE}, dimension elements of x not in y are silently deleted.
+#' If \code{excess.ok==FALSE}, an error is generated if x has dimension elements not in y
+#' @param missing.ok
+#' If \code{missing.ok==TRUE}, dimension elements of y not in x are filled with the fill value
+#' If \code{missing.ok==FALSE}, an error is generated if x is missing some dimension elements in y
+#'
+#'
 
-# if excess.ok==TRUE, dimension elements of x not in y are silently deleted
-# if excess.ok==FALSE, an error is generated if x has dimension elements not in y
-
-# If do.all=="union" or "intersect", all arguments are conformed to the
-# union (or intersection) of all dimnames, and are returned in a list.
-# With "union", this is the same behavior as when a list is supplied as the
-# only argument.
-
-# Rows or columns that must be introduced are filled with
-# NA.  Note that introduced string values are "".
 
 # x <- data.frame(row.names=letters[c(1,3,4,7,8)], i=1:5, d=(1:5)/10, f=as.factor(letters[22:26]), c=LETTERS[1:5], t=timeSeq(timeDate("2001/01/01"), len=5), stringsAsFactors=FALSE)
 

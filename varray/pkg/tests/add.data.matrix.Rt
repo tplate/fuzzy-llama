@@ -1,4 +1,14 @@
+> library(Matrix)
 > x <- cbind(A=c(a=1))
+> # functional form
+> add.data.matrix(x, cbind(B=c(b=2)))
+  A B
+a 1 0
+b 0 2
+> x
+  A
+a 1
+> # side-effects form
 > add.data.matrix('x', cbind(B=c(b=2)))
 > x
   A B
@@ -36,6 +46,21 @@ c 0 1
 b 2 0
 > 
 > x <- Matrix(cbind(A=c(a=1)))
+> x
+1 x 1 Matrix of class "dtrMatrix"
+  A
+a 1
+> # functional form
+> add.data.Matrix(x, cbind(B=c(b=2)))
+2 x 2 Matrix of class "dgeMatrix"
+  A B
+a 1 0
+b 0 2
+> x
+1 x 1 Matrix of class "dtrMatrix"
+  A
+a 1
+> # side effects form
 > add.data.Matrix('x', cbind(B=c(b=2)))
 > x
 2 x 2 Matrix of class "dgeMatrix"

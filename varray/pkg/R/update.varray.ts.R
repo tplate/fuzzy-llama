@@ -1,3 +1,59 @@
+#' @title Add time series data to a varray object (obselete version of add.tsdata.varray)
+#'
+#' Add time series data to a varray object (obselete version
+#' of add.tsdata.varray).  This is not a method for a
+#' generic, though it is documented as one to stop R CMD
+#' check whinging about improper documentation.
+#'
+#' @method update varray.ts
+#'
+#' @param object The character name of an object to add time-series data to.
+#' The object is changed in place.
+#'
+#' @param data New data to incorporate in the object.
+#' Should have the same number of dimensions as the object
+#' being updated.  Must have dimnames.
+#'
+#' @param comp.name
+#' Base of name to use for the component objects in the varray.
+#' Optional, default value is \code{paste('.', objectName, dateblock)}.
+#' @param dateblock
+#' How to translate dates into blocks.  Ignored if argument
+#' \code{comp.name} is supplied. Default value is \code{"\%Y"}.
+#' @param format
+#' Format for parsing dates (which are supplied as dimension names on the
+#' \code{along} dimension).
+#' @param along
+#' Default is 1.
+#' @param dimorder
+#' Default is standard dim order.
+#' @param env.name
+#' Intended to be the name of the environment where the components exist,
+#' not yet fully tested.
+#' @param envir
+#' Intended to be the environment where the components exist,
+#' not yet fully tested.
+#' @param naidxok
+#' Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.
+#' @param keep.ordered
+#' Logical.  Specifies which dimensions should be kept ordered.  Can be a
+#' single element or a vector with length equal to the number of
+#' dimensions of \code{object}.
+#' @param umode Not used (may be used in the future)
+#' @param store.env.name Not used (may be used in the future)
+#' @param fill The value to fill missing data with in subset operations
+#' @param \dots
+#' Not used, but needed because \code{update()} is a generic.
+#'
+#' @details
+#' Contents of \code{data} are inserted into \code{object}, expanding the
+#' dimensions of \code{object} and creating new component objects if necessary.
+#' \code{update.varray.ts} is an obselete name for \code{add.tsdata.varray}.
+#'
+#' @return The altered object \code{x}.
+#'
+#' @seealso \code{\link{add.tsdata}}
+#'
 update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y', format=va$format,
                              # dates.by='bizdays', holidays='NYSEC', vmode='single',
                              along=va$along, dimorder=va$dimorder,

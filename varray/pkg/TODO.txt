@@ -1,3 +1,4 @@
-* add need.dimnames arg to update.varray.ts
-* add tests for multi-valued keep.ordered in update.varray.ts
-* remove args or add functionality for vmode, holidays & dates.by in update.varray.ts
+* add need.dimnames arg to add.tsdata.varray
+* add tests for multi-valued keep.ordered in add.tsdata.varray
+* DONE: remove args or add functionality for vmode, holidays & dates.by in add.tsdata.varray
+* DONE: add the roxygen2 docs for functions in subset.varray.Rd.old
