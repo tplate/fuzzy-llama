@@ -18,6 +18,16 @@
 is.virtual.array
 }
 \details{
-Should return TRUE for any object that is not a standard R array but that can be treated as an array using functions like \code{dim()}, \code{dimnames()}, \code{x[...]}, etc.  Only makes sense for objects which have a \code{dim()} method.
+Should return \code{TRUE} for any object that is not a
+standard R array but that can be treated as an array
+using functions like \code{dim()}, \code{dimnames()},
+\code{x[...]}, etc.  Only makes sense for objects which
+have a \code{dim()} method.
+
+For objects that are virtual arrays, the contents can
+only be safely accessed through ordinary indexing.  In
+contrast, the contents of an ordinary matrix or array
+based on an atomic vector can be directly accessed by
+indexing into the atomic vector.
 }
 

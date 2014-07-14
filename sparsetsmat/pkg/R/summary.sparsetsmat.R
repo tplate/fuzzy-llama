@@ -1,5 +1,6 @@
-summary.sparsetsmat <- function(object, ...) {
-    x <- object
+#' @rdname standard.array.methods
+#' @method print sparsetsmat
+print.sparsetsmat <- function(x, ...) {
     cat(paste(dim(x), collapse=' x '),
         " sparse persistent time-series matrix of class '", class(x), "'\n", sep='')
     cat("  rownames[", nrow(x), "] class '", class(x$all.dates)[1], "', ",
@@ -11,7 +12,6 @@ summary.sparsetsmat <- function(object, ...) {
     cat("  data.frame column names: ", paste(x$df.colnames, collapse=', '), '\n', sep='')
     invisible(x)
 }
-print.sparsetsmat <- function(x, ...) summary.sparsetsmat(x, ...)
 
 # pick some initial elements from a vector
 describe.values <- function(x,
@@ -38,7 +38,8 @@ some.examples <- function(x,
                           ellipsis=FALSE,
                           total=FALSE,
                           nuniq=FALSE,
-                          countna=FALSE)
+                          countna=FALSE,
+                          final=TRUE)
 {
     len <- length(x)
     if (len > max.examples + ellipsis) {

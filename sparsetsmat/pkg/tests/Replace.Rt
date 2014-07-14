@@ -37,4 +37,17 @@ List of 9
 2001-01-07 "a" "i" NA "d"
 2001-01-10 "a" "i" NA "d"
 > 
-
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-10', j='V2'), value='X', verbose=T))
+> # test for where we don't actually change anything
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-10', j='V2'), value='a', verbose=T))
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-10 "j" "x" "i" NA  "d"
+2001-01-13 "j" "x" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+> 
+> # test for where one change turns a later non-change into a change
+> # test for out of time-order rows in the newdata arg
+> # test for just have a single date beyond the range of the existing

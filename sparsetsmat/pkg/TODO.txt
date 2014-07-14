@@ -1,14 +1,14 @@
 * allow multiple value columns (like a 3-d data frame)
 * figure out desired j behavior for NA and out-of-range j indices
-* get Cpp code working for matrix indexing
 * add binary search to Cpp code
-* add backfill arg to Cpp code for square i,j indexing
 * make i,j indexing sort the i's (and produce a kk same as for matrix indexing)
 * add tests for replacement function
    - where we don't actually change anything
    - where one change turns a later non-change into a change
    - out of time-order rows in the newdata arg
    - just have a single date beyond the range of the existing
+* DONE: get Cpp code working for matrix indexing
+* DONE: add backfill arg to Cpp code for square i,j indexing
 * DONE: get add.data function being more efficient for the case where adding
   a single date that is greater than all existing
 * DONE: replacement function -- go via data.frame representation

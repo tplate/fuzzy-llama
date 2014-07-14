@@ -1,15 +1,16 @@
-'[<-.sparsetsmat' <- function(x, i, j, ..., value) {
+'[<-.sparsetsmat' <- function(x, i, j, ..., verbose=TRUE, value) {
+    # verbose <- FALSE
     # Convert square i,j indexing to matrix indexing.
     # Retrieve the existing values and look for differences.
     # Then only assign the differences.
     # Get the existing and new as data.frames.
     # Then stages of assigning the differences (in the df representation):
     #   (1) for those that match on i,j indices, change the values
-    #   (2) for the remaining (if any), call add.data()
+    #   (2) for the remaining (if any), call add.tsdata()
     # Finally, convert back to sparsetsmat.
     if (length(list(...)))
         stop('unexpected ... args')
-    nIdxs <- nargs() - 1 - (!missing(value))
+    nIdxs <- nargs() - 1 - (!missing(value)) - (!missing(verbose))
     if (nIdxs==1)
         y <- x[i, details=TRUE, backfill=FALSE]
     else if (nIdxs==2)
@@ -31,20 +32,29 @@
     # E.g., if exising data is 4,4,4, and the change is to 2,4,4
     # the second 4 becomes relevant.
     # But, if no values are new, can safely return without doing anything
-    if (all(is.na(dd$old) == is.na(dd$new) & (is.na(dd$old) | dd$old == dd$new)))
+    if (all(is.na(dd$old) == is.na(dd$new) & (is.na(dd$old) | dd$old == dd$new))) {
+        if (verbose)
+            cat('Nothing to change\n')
         return(x) # nothing to change -- no new values
+    }
     y$i.used <- x$dates[y$val.idx]
     # split into two parts: where indices match existing rows, and where they are new
     i <- y$i == y$i.used
     dde <- dd[i,,drop=FALSE]
     ddn <- dd[!i,,drop=FALSE]
-    if (any(i))
+    if (any(i)) {
+        cat('Changing', sum(i), 'existing entries\n')
         x$values[dde$val.idx] <- kv[i]
+    }
     if (nrow(ddn)==0) {
         # no new rows
+        if (verbose)
+            cat('Adding no new rows\n')
         return(x)
     } else {
         # have new rows
-        return(add.data(x, ddn[,c('i','j','new')]))
+        if (verbose)
+            cat('Adding', nrow(ddn), 'new rows\n')
+        return(add.tsdata(x, ddn[,c('i','j','new')]))
     }
 }
