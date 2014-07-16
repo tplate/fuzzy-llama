@@ -37,17 +37,65 @@ List of 9
 2001-01-07 "a" "i" NA "d"
 2001-01-10 "a" "i" NA "d"
 > 
-> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-10', j='V2'), value='X', verbose=T))
 > # test for where we don't actually change anything
 > as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-10', j='V2'), value='a', verbose=T))
+Nothing to change
+           V1  V2  V3  V4  V5 
+2001-01-01 NA  NA  NA  NA  NA 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-10 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+> # test for a simple change that affects the next row
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-10', j='V2'), value='X', verbose=T))
+Adding 1 new rows
            V1  V2  V3  V4  V5 
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
-2001-01-10 "j" "x" "i" NA  "d"
-2001-01-13 "j" "x" "c" NA  "h"
+2001-01-10 "j" "X" "i" NA  "d"
+2001-01-13 "j" "X" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
 > 
 > # test for where one change turns a later non-change into a change
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i=c('2001-01-10','2001-01-13'), j='V2'), value=c('X','a'), verbose=T))
+Adding 2 new rows
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-10 "j" "X" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
 > # test for out of time-order rows in the newdata arg
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i=c('2001-01-13','2001-01-10'), j='V2'), value=c('X','a'), verbose=T))
+Adding 2 new rows
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "X" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i=c('2001-01-13','2001-01-10'), j='V2'), value=c('a','X'), verbose=T))
+Adding 2 new rows
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-10 "j" "X" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
 > # test for just have a single date beyond the range of the existing
+> as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-20', j='V2'), value='X', verbose=T))
+Adding 1 new rows
+           V1  V2  V3  V4  V5 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+2001-01-20 "e" "X" "c" "g" "h"
+> 
+> 

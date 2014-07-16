@@ -33,8 +33,7 @@
     # the second 4 becomes relevant.
     # But, if no values are new, can safely return without doing anything
     if (all(is.na(dd$old) == is.na(dd$new) & (is.na(dd$old) | dd$old == dd$new))) {
-        if (verbose)
-            cat('Nothing to change\n')
+        if (verbose) cat('Nothing to change\n')
         return(x) # nothing to change -- no new values
     }
     y$i.used <- x$dates[y$val.idx]
@@ -43,18 +42,16 @@
     dde <- dd[i,,drop=FALSE]
     ddn <- dd[!i,,drop=FALSE]
     if (any(i)) {
-        cat('Changing', sum(i), 'existing entries\n')
+        if (verbose) cat('Changing', sum(i), 'existing entries\n')
         x$values[dde$val.idx] <- kv[i]
     }
     if (nrow(ddn)==0) {
         # no new rows
-        if (verbose)
-            cat('Adding no new rows\n')
+        if (verbose) cat('Adding no new rows\n')
         return(x)
     } else {
         # have new rows
-        if (verbose)
-            cat('Adding', nrow(ddn), 'new rows\n')
+        if (verbose) cat('Adding', nrow(ddn), 'new rows\n')
         return(add.tsdata(x, ddn[,c('i','j','new')]))
     }
 }

@@ -2,6 +2,8 @@
 #'
 #' Extract an ordinary sub-matrix or value from a sparsetsmat object.
 #'
+#' @rdname sub.sparsetsmat
+#'
 #' @method [ sparsetsmat
 #'
 #' @param x a sparsetsmat object
