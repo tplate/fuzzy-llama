@@ -4,14 +4,14 @@
 \title{Extract.sparsetsmat}
 \usage{
 \method{[}{sparsetsmat}(x, i, j, ..., drop = TRUE, vidx = FALSE,
-  details = FALSE, backfill = x$backfill, Cpp = TRUE)
+  details = FALSE, backfill = x$backfill, Cpp = TRUE, naked = FALSE)
 }
 \arguments{
 \item{x}{a sparsetsmat object}
 
 \item{i}{the row indices, can be numeric, character, Date
 or POSIXct, or a 2-column matrix or dataframe for matrix
-indexing}
+indexing.}
 
 \item{j}{the j indices, can be numeric, character or NULL
 in the case of matrix indexing}
@@ -31,7 +31,14 @@ earlier dates.}
 
 \item{Cpp}{logical If TRUE, use fast C++ code}
 
-\item{...}{required by the generic, but extra arguments not described here are now alowed.}
+\item{naked}{logical If TRUE do not return dimnames on
+the result.  This can result is a very large speeed up
+when there are many rownames compared to returned
+elements, because constructing rownames involves format
+date objects which is slow.}
+
+\item{...}{required by the generic, but extra arguments
+not described here are not alowed.}
 }
 \description{
 Extract an ordinary sub-matrix or value from a sparsetsmat object.
@@ -57,6 +64,15 @@ interpretation as dropping that row from the result.
 
    \item The first column in a matrix index (can be a
 dataframe) is interpreted in the same way.
+
 }
+}
+\note{
+Matrix-indexing for \code{sparsetsmat} objects is
+slightly more verstatile than for standard matrix objects
+in R in that \code{sparsetsmat} objects can take a
+dataframe for the matrix index, allowing the use of
+different datatypes for specifying the indices on the
+rows and columns.
 }
 

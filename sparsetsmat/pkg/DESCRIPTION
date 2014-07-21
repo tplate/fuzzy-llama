@@ -5,7 +5,11 @@ Version: 1.0-0
 Date: 2014-05-15
 Author: Tony Plate
 Maintainer: Tony Plate <tplate@acm.org>
-Description: Efficient storage for persistent sparse time-series matrices
+Description: Efficient storage for persistent sparse
+    time-series matrices.  Intended specificially for
+    time-series with slow-changing data such as identifiers
+    and other persistent characteristics.  Uses
+    Rcpp C++ code for efficient retrieval.
 License: GPL
 Suggests:
     scriptests

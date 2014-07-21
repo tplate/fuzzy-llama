@@ -1,9 +1,82 @@
-#' sparsetsmat
 #'
-#' Sparse storage of persistent time-series data
+#' Sparse storage for persistent time-series data
+#'
+#' The \code{sparsetsmat} class provides an object to store
+#' slow changing time-series data in a compact way.
+#'
+#' The data is stored compactly by assuming that if no data is
+#' stored for a particular id on a particular date, the most
+#' recent data available for that id should be used.  The
+#' format is designed for fast extraction, but not for fast
+#' modification or addition of new data.
+#'
+#' A \code{sparsetsmat} object behaves like an ordinary
+#' matrix with respect to many methods, including extraction
+#' (subsetting using the \code{x[i,j]} syntax), \code{dim},
+#' \code{dimnames}, etc.  Rownames are dates (stored as
+#' either \code{Date} or \code{POSIXct} objects) and
+#' colnames are arbitrary character labels.  The data type
+#' stored can be any atomic R object (e.g., double, integer,
+#' character, etc.)
+#'
+#' For example, a dense matrix with the following structure
+#' \tabular{rrrr}{
+#'              \tab X \tab Y \tab Z \cr
+#' '2001-01-01' \tab 'a' \tab NA \tab NA \cr
+#' '2001-01-03' \tab 'a' \tab 'b' \tab NA \cr
+#' '2001-01-05' \tab 'a' \tab 'B' \tab 'C'
+#' }
+#' is stored with effectively the following data:
+#' \tabular{rrr}{
+#' date \tab id \tab value \cr
+#' '2001-01-01' \tab 'X' \tab 'a' \cr
+#' '2001-01-03' \tab 'Y' \tab 'b' \cr
+#' '2001-01-05' \tab 'Y' \tab 'B' \cr
+#' '2001-01-05' \tab 'Z' \tab 'C'
+#' }
+#'
+#' The result of subsetting a \code{sparsetsmat} object is
+#' always an ordnary dense matrix.
+#'
+#' The indices supplied to the subset method can be
+#' character, \code{Date}, or \code{POSIXct}.  Unlike with
+#' ordinary matrices, the subsetting method for
+#' \code{sparsetsmat} will automatically interpolate data
+#' for dates in the date range of the object.
+#'
+#' Subsetting is intended to be as efficient as possible and
+#' is coded in C++ using Rcpp.  Relative to subsetting a
+#' large ordinary matrix, subsetting a \code{sparsetsmat}
+#' object takes between 1 and 6 times as long.  See the
+#' source package file \code{tests/zhuge.Rt} for timing examples.
+#'
+#' \code{sparsetsmat} objects differ from the sparse matrix
+#' objects of the \code{Matrix} package in that the uncoded
+#' value for \code{sparsetsmat} objects is the most recent
+#' value in the column, or \code{NA} if there is no prior
+#' value, whereas in the \code{Matrix} package, the uncoded
+#' value is zero.  Furthermore, the \code{sparsetsmat}
+#' package does not provide any matrix-algebra routines that
+#' work directly on the compactly stored data.  The
+#' \code{sparsetsmat} package does only one thing: store
+#' slow-changing persistent time series data in a compact
+#' manner, and convert that data to dense matrices in a
+#' reasonably efficient manner.
+#'
+#' @docType package
+#' @name sparsetsmat-package
+#' @seealso \code{\link{sparsetsmat}}
+NULL
+
+#'
+#' Sparse storage for persistent time-series data
+#'
+#' Create a sparsetsmat object to store slow-changing
+#' time-series data in a space-efficient manner.
 #'
 #' @param x an object with data for a sparsetsmat: either a
-#' data frame or a dense matrix
+#' data frame with three columns specifying the data
+#' sparsely (dates, column lables and values), or a dense matrix.
 #'
 #' @param date.col The column of the data frame to get dates from (default = 1)
 #' @param id.col The column of the data frame to get id from (default = 2)
@@ -30,7 +103,7 @@
 #'
 #'   \item dates The dates of the underlying data.  Can be
 #' \code{Date}, \code{POSIXct}, \code{double} or
-#' \code{integer}
+#' \code{integer}.  This can have repititions of dates.
 #'
 #'   \item values The values of the underlying data.  Can be
 #' any atomic data type.  It is necessary to be able to do
@@ -47,9 +120,12 @@
 #'   \item id.noc The number of occurences of each id in
 #' \code{dates} and \code{values}.  Can contain zeros.
 #'
-#'   \item all.dates class numeric, Date or POSIXct.  Will
-#'   be sorted unless drop.unneeded.dates was FALSE and x was
-#'   a matrix with out-of-order dates as rownames.
+#'   \item all.dates class numeric, Date or POSIXct.
+#' Records all the dates that have been stored in the data,
+#' which can include dates on which no data changed, and
+#' which will not be recorded in the \code{dates} component.
+#' Will be sorted unless drop.unneeded.dates was FALSE and x
+#' was a matrix with out-of-order dates as rownames.
 #'
 #'    \item df.colnames colnames of the data.frame version
 #'
@@ -61,13 +137,33 @@
 #' for a particular id the value in \code{id.idx} is
 #' ignored.
 #'
-#' @details A sparsetsmat object is stored as a list of four
-#' vectors: the date index, the identifier values and
-#' indices, and the data values.  The identifiers correspond
-#' to the columns in matrix data.  The date index and the
-#' values are vectors of the same length.  The identifier
-#' indices are the starting indices for each identifier in \code{id.idx}.
+#' @details A sparsetsmat object is an S3 object that stores
+#' slow-changing data in a compact format.  See the Value
+#' section for a description of the structure.
 #'
+#' @examples
+#' m2.df <- data.frame(d=seq(as.Date('2001-01-01'), len=5, by='days')[
+#'                         c(    1,  4,  5,  2,  1,  2,  3,  5)],
+#'                       p=c('a','a','a','b','e','e','d','d'),
+#'                       v=c(  1,  2,  3,  4,  5,  6,  7,  8))
+#' m2.tsm <- sparsetsmat(m2.df, sort.ids=TRUE)
+#' m2.tsm[, ]
+#' m2.tsm
+#' m2.mat <- as.matrix(m2.tsm)
+#' attributes(m2.mat)
+#' as.data.frame(m2.tsm)
+#' as.matrix(m2.tsm)
+#' # Ordinary square i,j indexing
+#' m2.tsm[2,3]
+#' m2.tsm[2,2:3]
+#' m2.tsm[2,1:3]
+#' m2.tsm[1:2,1:4]
+#' # Matrix indexing
+#' m2.tsm[cbind(c(2,3,4),c(1))]
+#' m2.tsm[cbind(c(2,3,4),c(1,2,3))]
+#' m2.tsm[cbind(c(2,3,4),c(3))]
+#' # Matrix indexing using character indices
+#' m2.tsm[data.frame(c('2001-01-01','2001-01-03','2001-01-05'),c('a','b','e'))]
 
 sparsetsmat <- function(x, ...) UseMethod('sparsetsmat')
 
@@ -144,6 +240,7 @@ sparsetsmat.data.frame <- function(x,
         dates <- as.POSIXct(dates, tz=tz)
     if (drop.unneeded.dates)
         all.dates <- sort(unique(dates))
+    # TODO: assign preformatted dates & all.dates
     return(structure(list(dates=dates, values=df[,value.col],
                           ids=ids, id.idx=id.idx, id.noc=id.noc,
                           all.dates=all.dates, df.colnames=nm,
@@ -211,6 +308,7 @@ sparsetsmat.default <- function(x,
     id.idx[id.noc==0] <- NA
     if (drop.unneeded.dates)
         all.dates <- sort(unique(dd))
+    # TODO: assign preformatted dates & all.dates
     return(structure(list(dates=dd, values=vv, ids=ids,
                           id.idx=id.idx, id.noc=id.noc,
                           all.dates=all.dates, df.colnames=c('dates','ids','values'),

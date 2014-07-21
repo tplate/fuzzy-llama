@@ -3,7 +3,7 @@
 \alias{sparsetsmat}
 \alias{sparsetsmat.data.frame}
 \alias{sparsetsmat.default}
-\title{sparsetsmat}
+\title{Sparse storage for persistent time-series data}
 \usage{
 sparsetsmat(x, ...)
 
@@ -20,7 +20,8 @@ sparsetsmat(x, ...)
 }
 \arguments{
 \item{x}{an object with data for a sparsetsmat: either a
-data frame or a dense matrix}
+data frame with three columns specifying the data
+sparsely (dates, column lables and values), or a dense matrix.}
 
 \item{date.col}{The column of the data frame to get dates from (default = 1)}
 
@@ -56,7 +57,7 @@ A \code{sparsetsmat} (S3) object with the following components:
 
   \item dates The dates of the underlying data.  Can be
 \code{Date}, \code{POSIXct}, \code{double} or
-\code{integer}
+\code{integer}.  This can have repititions of dates.
 
   \item values The values of the underlying data.  Can be
 any atomic data type.  It is necessary to be able to do
@@ -73,9 +74,12 @@ id does not occur in the data.
   \item id.noc The number of occurences of each id in
 \code{dates} and \code{values}.  Can contain zeros.
 
-  \item all.dates class numeric, Date or POSIXct.  Will
-  be sorted unless drop.unneeded.dates was FALSE and x was
-  a matrix with out-of-order dates as rownames.
+  \item all.dates class numeric, Date or POSIXct.
+Records all the dates that have been stored in the data,
+which can include dates on which no data changed, and
+which will not be recorded in the \code{dates} component.
+Will be sorted unless drop.unneeded.dates was FALSE and x
+was a matrix with out-of-order dates as rownames.
 
    \item df.colnames colnames of the data.frame version
 
@@ -88,18 +92,40 @@ for a particular id the value in \code{id.idx} is
 ignored.
 }
 \description{
-Sparse storage of persistent time-series data
+Create a sparsetsmat object to store slow-changing
+time-series data in a space-efficient manner.
 
 sparsetsmat
 
 sparsetsmat
 }
 \details{
-A sparsetsmat object is stored as a list of four
-vectors: the date index, the identifier values and
-indices, and the data values.  The identifiers correspond
-to the columns in matrix data.  The date index and the
-values are vectors of the same length.  The identifier
-indices are the starting indices for each identifier in \code{id.idx}.
+A sparsetsmat object is an S3 object that stores
+slow-changing data in a compact format.  See the Value
+section for a description of the structure.
+}
+\examples{
+m2.df <- data.frame(d=seq(as.Date('2001-01-01'), len=5, by='days')[
+                        c(    1,  4,  5,  2,  1,  2,  3,  5)],
+                      p=c('a','a','a','b','e','e','d','d'),
+                      v=c(  1,  2,  3,  4,  5,  6,  7,  8))
+m2.tsm <- sparsetsmat(m2.df, sort.ids=TRUE)
+m2.tsm[, ]
+m2.tsm
+m2.mat <- as.matrix(m2.tsm)
+attributes(m2.mat)
+as.data.frame(m2.tsm)
+as.matrix(m2.tsm)
+# Ordinary square i,j indexing
+m2.tsm[2,3]
+m2.tsm[2,2:3]
+m2.tsm[2,1:3]
+m2.tsm[1:2,1:4]
+# Matrix indexing
+m2.tsm[cbind(c(2,3,4),c(1))]
+m2.tsm[cbind(c(2,3,4),c(1,2,3))]
+m2.tsm[cbind(c(2,3,4),c(3))]
+# Matrix indexing using character indices
+m2.tsm[data.frame(c('2001-01-01','2001-01-03','2001-01-05'),c('a','b','e'))]
 }
 

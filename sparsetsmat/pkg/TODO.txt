@@ -7,6 +7,7 @@
    - where one change turns a later non-change into a change
    - out of time-order rows in the newdata arg
    - just have a single date beyond the range of the existing
+* make Extract.R efficient for factor component in data.frame indices
 * DONE: get Cpp code working for matrix indexing
 * DONE: add backfill arg to Cpp code for square i,j indexing
 * DONE: get add.data function being more efficient for the case where adding

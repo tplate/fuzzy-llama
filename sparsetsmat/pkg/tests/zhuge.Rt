@@ -46,6 +46,27 @@ List of 9
 2001-09-20 "F" NA NA "L" NA NA
 2001-09-21 "F" NA NA "L" NA NA
 > 
+> # dense matrix is 235Mb
+> object.size(m5.mat)/2^20
+#@ignore-output
+235.377502441406 bytes
+> # sparse matrix is <1Mb
+> object.size(m5.tsm)/2^20
+#@ignore-output
+0.959808349609375 bytes
+> # most columns have 6 or less different values
+> table(apply(m5.mat, 2, function(x) length(unique(x))))
+
+   1    2    3    4    5    6    7    8    9 
+2747 4051 3068 1531  531  149   34    6    2 
+> table(apply(m5.mat, 2, function(x) round(sum(is.na(x)) / 500)))
+
+   0    1    2    3    4    5 
+1644 2704 1952 1533 1084 3202 
+> 
+> sum(is.na(m5.mat))/length(m5.mat)
+[1] 0.518241
+> 
 > all.equal(m5.mat, as.matrix(m5.tsm))
 [1] TRUE
 > all.equal(m5.tsm[cbind(c(row(m5.mat)), c(col(m5.mat)))], c(m5.mat))
@@ -57,21 +78,59 @@ List of 9
 > all.equal(m5.tsm[data.frame(m5.tsm$all.dates[c(row(m5.mat))], c(col(m5.mat)))], c(m5.mat))
 [1] TRUE
 > 
-> system.time(table(m5.tsm[100,]))
+> # 3 times slower to retrieve single rows
+> system.time(sapply(1:nrow(m5.mat), function(i) length(m5.mat[i,])))
 #@ignore-output
    user  system elapsed 
-  1.454   0.698   2.185 
-> system.time(table(m5.mat[100,]))
+  1.547   0.093   1.632 
+> system.time(sapply(1:nrow(m5.mat), function(i) length(m5.tsm[i,])))
 #@ignore-output
    user  system elapsed 
-  0.017   0.002   0.026 
+  4.656   0.261   4.884 
+>
+> # 60 times slower to retrieve columns!
+> # (this is because the rows names are constructed on the result each time
+> #  by formatting a POSIXct object)
+> system.time(sapply(1:ncol(m5.mat), function(i) length(m5.mat[,i])))
+#@ignore-output
+   user  system elapsed 
+  0.646   0.062   0.704 
+> system.time(sapply(1:ncol(m5.mat), function(i) length(m5.tsm[,i])))
+#@ignore-output
+   user  system elapsed 
+ 38.200   1.332  39.302 
+> # but only 6 times slower if we suppress dimension names
+> system.time(sapply(1:ncol(m5.mat), function(i) length(m5.tsm[,i,naked=T])))
+#@ignore-output
+   user  system elapsed 
+  2.361   0.120   2.462 
+>
+> # about the same to retrieve a subset of rows
+> system.time(sapply(1:50, function(i) length(m5.tsm[100:200,])))
+#@ignore-output
+   user  system elapsed 
+  1.888   0.502   2.376 
+> system.time(sapply(1:50, function(i) length(m5.mat[100:200,])))
+#@ignore-output
+   user  system elapsed 
+  1.875   0.159   2.031 
 > 
-> system.time(table(m5.mat[100:200,]))
+> system.time(sapply(1:50, function(i) length(m5.tsm[2100:2200,])))
 #@ignore-output
    user  system elapsed 
-  0.921   0.036   0.957 
-> system.time(table(m5.tsm[100:200,]))
+  2.035   0.536   2.562 
+> system.time(sapply(1:50, function(i) length(m5.mat[2100:2200,])))
 #@ignore-output
    user  system elapsed 
-  2.366   0.723   3.170 
+  1.896   0.166   2.054 
+> 
+> # 3 to 4 times slower to retrieve a subset of columns
+> system.time(sapply(1:50, function(i) length(m5.mat[,100:200])))
+#@ignore-output
+   user  system elapsed 
+  0.202   0.030   0.231 
+> system.time(sapply(1:50, function(i) length(m5.tsm[,100:200])))
+#@ignore-output
+   user  system elapsed 
+  0.659   0.100   0.755 
 > 

@@ -1,4 +1,6 @@
-setwd('R/fuzzy-llama/sparsetsmat/')
+# consider using the R.methodS3 package to define generics in multiple packages
+
+setwd('~/R/fuzzy-llama/sparsetsmat/')
 library(Rcpp)
 library(roxygen2)
 sourceCpp('pkg/src/Extract.cpp')
@@ -10,3 +12,9 @@ file.remove(list.files('pkg/man',patt='*.Rd$', full=T)); roxygenize('pkg', c('co
 
 R CMD build pkg
 R CMD check --no-manual sparsetsmat_1.0-0.tar.gz -l ~/site-library
+
+> (a + b
++ + c)
+
+> (a + b +
++ c + d)

@@ -10,7 +10,7 @@
 #'
 #' @param i the row indices, can be numeric, character, Date
 #' or POSIXct, or a 2-column matrix or dataframe for matrix
-#' indexing
+#' indexing.
 #'
 #' @param j the j indices, can be numeric, character or NULL
 #' in the case of matrix indexing
@@ -30,7 +30,14 @@
 #'
 #' @param Cpp logical If TRUE, use fast C++ code
 #'
-#' @param ... required by the generic, but extra arguments not described here are now alowed.
+#' @param naked logical If TRUE do not return dimnames on
+#' the result.  This can result is a very large speeed up
+#' when there are many rownames compared to returned
+#' elements, because constructing rownames involves format
+#' date objects which is slow.
+#'
+#' @param ... required by the generic, but extra arguments
+#' not described here are not alowed.
 #'
 #' @details
 #'
@@ -54,14 +61,38 @@
 #'
 #'    \item The first column in a matrix index (can be a
 #' dataframe) is interpreted in the same way.
+#'
 #' }
-'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill, Cpp=TRUE) {
+#'
+#' @note Matrix-indexing for \code{sparsetsmat} objects is
+#' slightly more verstatile than for standard matrix objects
+#' in R in that \code{sparsetsmat} objects can take a
+#' dataframe for the matrix index, allowing the use of
+#' different datatypes for specifying the indices on the
+#' rows and columns.
+#'
+'[.sparsetsmat' <- function(x, i, j, ..., drop=TRUE, vidx=FALSE, details=FALSE, backfill=x$backfill, Cpp=TRUE, naked=FALSE) {
     if (length(list(...)))
         stop('unexpected ... args')
-    nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details)) - (!missing(backfill)) - (!missing(Cpp))
+    nIdxs <- nargs() - 1 - (!missing(drop)) - (!missing(vidx)) - (!missing(details)) - (!missing(backfill)) - (!missing(Cpp)) - (!missing(naked))
     mat.ind <- FALSE
-    if (missing(i))
+    i.idx <- NULL
+    i.idx.srtd <- FALSE
+    if (missing(i)) {
+        # avoid unnecessary conversion between dates and numbers
+        # because it is quite slow
         i <- x$all.dates
+        if (inherits(x$all.dates, 'Date')) {
+            i.idx <- as.integer(x$all.dates)
+        } else if (inherits(x$all.dates, 'POSIXct')) {
+            i.idx <- as.double(x$all.dates)
+        } else {
+            i.idx <- x$all.dates
+        }
+        i.idx.srtd <- TRUE
+        if (!naked)
+            i.dn <- format(x$all.dates)
+    }
     if (!is.null(dim(i)) && length(dim(i))>1) {
         # matrix indexing
         if (!missing(j))
@@ -108,7 +139,9 @@
             i <- as.Date(i)
         }
     }
-    if (   (is.numeric(i) | is.integer(i))
+    if (!is.null(i.idx)) {
+        # already calculated i.idx above
+    } else if (   (is.numeric(i) | is.integer(i))
         && !(inherits(i, 'Date') | inherits(i, 'POSIXct'))
         && (inherits(x$dates, 'Date') | inherits(x$dates, 'POSIXct'))) {
         if (!is.integer(i) & any(abs(i - round(i)) > 1e-4))
@@ -122,26 +155,26 @@
         if (any(!is.na(i) & (i < 1 | i > length(x$all.dates))))
             stop('numeric i index values out of range')
         i.idx1 <- if (is.integer(i)) i else as.integer(i)
-        if (!mat.ind)
+        if (!mat.ind && !naked)
             i.dn <- format(x$all.dates[i.idx1])
         # translate the index to the numeric value of the date
         i.idx <- as.numeric(x$all.dates)[i.idx1]
     } else if (inherits(x$dates, 'Date')) {
         if (!inherits(i, 'Date'))
             stop('cannot use ', class(i)[1], ' i index with Date indices on x')
-        if (!mat.ind)
+        if (!mat.ind && !naked)
             i.dn <- format(i)
         i.idx <- as.integer(i)
     } else if (inherits(x$dates, 'POSIXct')) {
         if (!inherits(i, 'POSIXct'))
             stop('cannot use ', class(i)[1], ' i index with POSIXct indices on x')
-        if (!mat.ind)
+        if (!mat.ind && !naked)
             i.dn <- format(i)
         i.idx <- as.numeric(i)
     } else if (is.numeric(x$dates) && class(x$dates)[1]=='numeric') {
         if (!(is.numeric(i) && (class(i)[1]=='numeric' || class(i)[1]=='integer')))
             stop('cannot use ', class(i)[1], ' i index with numeric indices on x')
-        if (!mat.ind)
+        if (!mat.ind && !naked)
             i.dn <- as.character(i)
         i.idx <- i
     } else {
@@ -162,8 +195,11 @@
     } else if (is.character(j)) {
         j.idx <- match(j, x$ids)
         j.dn <- j
+    } else if (is.factor(j)) {
+        j.idx <- match(levels(j), x$ids)[as.integer(j)]
+        j.dn <- as.character(j)
     } else {
-        stop('j must be numeric or character')
+        stop('j must be numeric, character, or factor (is ', class(j), ')')
     }
     rule <- if (is.logical(backfill) && backfill) c(2,2) else c(1,2)
     if (mat.ind) {
@@ -227,54 +263,65 @@
         # need to put val back in the right order
         val[kk] <- val
     } else {
-        kk <- order(i.idx, na.last=TRUE)
-        i.idx.srtd <- isTRUE(all.equal(kk, seq(along=kk)))
-        if (!i.idx.srtd)
-            i.idx <- i.idx[kk]
         # regular indexing, not matrix indexing
         if (length(i.idx)==0 || length(j.idx)==0) {
             val.idx <- integer(0)
-        } else if (Cpp) {
-            # call to C++ for fast indexing
-            # j.idx indexes into id.idx and id.noc, which have the start and # of rows
-            # for the date and id.
-            if (is.double(x$dates))
-                val.idx <- stsm_xt_sqd(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
-            else if (is.integer(x$dates))
-                val.idx <- stsm_xt_sqi(as.integer(x$dates), as.integer(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
-            else
-                stop('x$dates is neither integer nor double?')
-            if (isTRUE(any(val.idx==0)))
-                stop('internal error: have some val.idx==0')
-        } else if (length(j.idx)==1) {
-            # single column (could be single element)
-            if (x$id.noc[j.idx] == 0) {
-                val.idx <- replace(integer(length(i.idx)), TRUE, NA)
-            } else {
-                k <- seq(x$id.idx[j.idx], len=x$id.noc[j.idx])
-                # need to cope with all NAs or some NAs, in the interpolated values
-                # so can't use approx directly
-                val.idx <- approx(x$dates[k], k, xout=i.idx, method='constant', ties='ordered', rule=rule)$y
-            }
         } else {
-            # multiple cols (could be single or multiple rows)
-            val.idx <- unlist(lapply(seq(along=j.idx), function(jj) {
-                if (is.na(j.idx[jj]))
-                    return(replace(integer(length(i.idx)), TRUE, NA))
-                if (x$id.noc[j.idx[jj]] == 0)
-                    return(replace(integer(length(i.idx)), TRUE, NA))
-                k <- seq(x$id.idx[j.idx[jj]], len=x$id.noc[j.idx[jj]])
-                # need to cope with all NAs or some NAs, in the interpolated values
-                # so can't use approx directly
-                val.idx <- approx(x$dates[k], k, xout=i.idx, method='constant', ties='ordered', rule=rule)$y
-                return(val.idx)
-            }), use.names=FALSE)
-        }
-        if (!i.idx.srtd) {
-            # return i.idx to its original order and val.idx correspondingly
-            # when kk = order(x) the reverse of x[kk] is replace(x, kk, x[kk])
-            i.idx <- replace(1L, kk, i.idx)
-            val.idx <- replace(1L, rep(seq(0,len=length(j.idx), by=length(i.idx)), each=length(i.idx)) + kk, val.idx)
+            if (!isTRUE(i.idx.srtd)) {
+                if (any(i.idx.isna <- is.na(i.idx))) {
+                    i.idx.srtd <- isTRUE(all(diff(i.idx[!i.idx.isna]) >= 0))
+                } else {
+                    i.idx.srtd <- isTRUE(all(diff(i.idx) >= 0))
+                }
+                if (!i.idx.srtd) {
+                    kk <- order(i.idx, na.last=TRUE)
+                    i.idx <- i.idx[kk]
+                }
+            } else {
+                kk <- seq(along=i.idx)
+            }
+            if (Cpp) {
+                # call to C++ for fast indexing
+                # j.idx indexes into id.idx and id.noc, which have the start and # of rows
+                # for the date and id.
+                if (is.double(x$dates))
+                    val.idx <- stsm_xt_sqd(x$dates, as.double(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
+                else if (is.integer(x$dates))
+                    val.idx <- stsm_xt_sqi(x$dates, as.integer(i.idx), j.idx, x$id.idx, x$id.noc, backfill)
+                else
+                    stop('x$dates is neither integer nor double?')
+                if (isTRUE(any(val.idx==0)))
+                    stop('internal error: have some val.idx==0')
+            } else if (length(j.idx)==1) {
+                # single column (could be single element)
+                if (x$id.noc[j.idx] == 0) {
+                    val.idx <- replace(integer(length(i.idx)), TRUE, NA)
+                } else {
+                    k <- seq(x$id.idx[j.idx], len=x$id.noc[j.idx])
+                    # need to cope with all NAs or some NAs, in the interpolated values
+                    # so can't use approx directly
+                    val.idx <- approx(x$dates[k], k, xout=i.idx, method='constant', ties='ordered', rule=rule)$y
+                }
+            } else {
+                # multiple cols (could be single or multiple rows)
+                val.idx <- unlist(lapply(seq(along=j.idx), function(jj) {
+                    if (is.na(j.idx[jj]))
+                        return(replace(integer(length(i.idx)), TRUE, NA))
+                    if (x$id.noc[j.idx[jj]] == 0)
+                        return(replace(integer(length(i.idx)), TRUE, NA))
+                    k <- seq(x$id.idx[j.idx[jj]], len=x$id.noc[j.idx[jj]])
+                    # need to cope with all NAs or some NAs, in the interpolated values
+                    # so can't use approx directly
+                    val.idx <- approx(x$dates[k], k, xout=i.idx, method='constant', ties='ordered', rule=rule)$y
+                    return(val.idx)
+                }), use.names=FALSE)
+            }
+            if (!i.idx.srtd) {
+                # return i.idx to its original order and val.idx correspondingly
+                # when kk = order(x) the reverse of x[kk] is replace(x, kk, x[kk])
+                i.idx <- replace(1L, kk, i.idx)
+                val.idx <- replace(1L, rep(seq(0,len=length(j.idx), by=length(i.idx)), each=length(i.idx)) + kk, val.idx)
+            }
         }
         if (details)
             return(list(mat.idx=FALSE, i.idx=i.idx, j.idx=j.idx,
@@ -288,22 +335,29 @@
             if (length(j)>1)
                 names(val) <- j.dn
         } else if (drop && length(j)==1) {
-            if (length(i)>1)
+            if (length(i)>1 && !naked)
                 names(val) <- i.dn
         } else {
             attr(val, 'dim') <- c(length(i.idx), length(j.idx))
-            attr(val, 'dimnames') <- list(i.dn, j.dn)
+            if (!naked)
+                attr(val, 'dimnames') <- list(i.dn, j.dn)
         }
     }
     return(val)
 }
 
 stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
-    # Non-vectorized version for translation to Rcpp.
+    # Calculate indices into compact data for matrix-style indices,
+    # i.e., length(i.idx)==length(j.idx) and returned value is a
+    # vector of the same length of indices into compact data so that
+    # retval[k] is the index of the value for x[i.idx[k], j.idx[i]].
+    #
+    # This is a non-vectorized version for translation to Rcpp.
+    # Assumptions about input variables:
     # The values in j.idx are grouped and are indices into id.idx and id.noc.
     # The values in id.idx are indices into dates.
     # The values in id.noc are the number of dates for that id.
-    # The values in i.idx are asc sorted within groups of j.idx and are
+    # The values in i.idx are ascending sorted within groups of j.idx and are
     # directly comparable with the values in dates
     # Both i.idx and dates are sorted in groups of ids.
     # The return values are indices into dates.
