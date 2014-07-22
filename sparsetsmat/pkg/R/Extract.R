@@ -114,9 +114,18 @@
         j <- seq(along=x$ids)
     if (!is.null(dim(j)))
         stop('second index must be a vector')
-    if (!is.numeric(i) && !is.character(i) && !is.factor(i) && !inherits(i, 'Date') && !inherits(i, 'POSIXt'))
+    if (!is.numeric(i) && !is.character(i) && !is.factor(i) && !is.logical(i)
+        && !inherits(i, 'Date') && !inherits(i, 'POSIXt'))
         stop('first index must be numeric, character, factor, Date or POSIXt (is ', class(i), ')')
-    if (is.factor(i)) {
+    if (is.logical(i)) {
+        if (mat.ind)
+            stop('cannot use logical index in matrix indexing')
+        if (length(i)==1)
+            i <- rep(NA, length(x$all.dates))
+        if (length(i) != length(x$all.dates))
+            stop('logical i must be length 1 or ', length(x$all.dates))
+        i <- seq(len=length(x$all.dates))[i]
+    } else if (is.factor(i)) {
         if (inherits(x$dates, 'Date')) {
             i <- as.Date(levels(i))[as.integer(i)]
         } else if (inherits(x$dates, 'POSIXct')) {
@@ -130,7 +139,7 @@
         } else if (is.character(i) && inherits(x$dates, 'POSIXct')) {
             # only parse unique values
             i <- with(list(iu=unique(i)), as.POSIXct(iu, tz='UTC')[match(i, iu)])
-        } else if (inherits(i, 'POISXlt')) {
+        } else if (inherits(i, 'POSIXlt')) {
             if (inherits(x$dates, 'Date'))
                 i <- as.Date(i)
             else
@@ -195,11 +204,20 @@
     } else if (is.character(j)) {
         j.idx <- match(j, x$ids)
         j.dn <- j
+    } else if (is.logical(j)) {
+        if (mat.ind)
+            stop('cannot use logical index in matrix indexing')
+        if (length(j)==1)
+            j <- rep(NA, length(x$ids))
+        if (length(j) != length(x$ids))
+            stop('logical j must be length 1 or ', length(x$ids))
+        j.idx <- seq(len=length(x$ids))[j]
+        j.dn <- x$ids[j.idx]
     } else if (is.factor(j)) {
         j.idx <- match(levels(j), x$ids)[as.integer(j)]
         j.dn <- as.character(j)
     } else {
-        stop('j must be numeric, character, or factor (is ', class(j), ')')
+        stop('j must be numeric, character, logical, or factor (is ', class(j), ')')
     }
     rule <- if (is.logical(backfill) && backfill) c(2,2) else c(1,2)
     if (mat.ind) {

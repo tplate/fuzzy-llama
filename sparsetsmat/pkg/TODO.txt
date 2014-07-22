@@ -1,5 +1,6 @@
-* allow multiple value columns (like a 3-d data frame)
 * figure out desired j behavior for NA and out-of-range j indices
+* check behavior when supplied ids not in matrix (ordinary, matrix & factor indexing)
+* allow multiple value columns (like a 3-d data frame)
 * add binary search to Cpp code
 * make i,j indexing sort the i's (and produce a kk same as for matrix indexing)
 * add tests for replacement function
