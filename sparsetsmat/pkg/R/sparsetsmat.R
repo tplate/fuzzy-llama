@@ -199,7 +199,7 @@ sparsetsmat.data.frame <- function(x,
     val.na <- is.na(df[, value.col])
     dup.row <- (  (df[-1, id.col] == df[-nrow(df), id.col])
                 & (val.na[-1] == val.na[-nrow(df)])
-                & (df[-1, value.col] == df[-nrow(df), value.col]))
+                & (df[-1, value.col] == df[-nrow(df), value.col] | val.na[-1]))
     if (any(dup.row))
         df <- df[c(TRUE, !dup.row), , drop=FALSE]
     dup.date <- (  (df[-1, id.col] == df[-nrow(df), id.col])

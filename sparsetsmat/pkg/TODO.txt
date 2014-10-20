@@ -1,3 +1,7 @@
+* fix problem with duplicate rows with NA values -- put in test for this
+* make varray(x) work (?)
+* support sparse non-carryover data with a pre-specified default (e.g., 1, 0, NA)
+* allow the creation scenario add.tsdata.sparsetsmat('XXX', ...) where object 'XXX' doesn't exist (also support assigning in this usage)
 * figure out desired j behavior for NA and out-of-range j indices
 * check behavior when supplied ids not in matrix (ordinary, matrix & factor indexing)
 * allow multiple value columns (like a 3-d data frame)
