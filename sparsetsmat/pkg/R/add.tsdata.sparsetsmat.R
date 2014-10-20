@@ -7,13 +7,17 @@ add.tsdata <- function(x, ...) UseMethod('add.tsdata')
 
 #' @rdname add.tsdata
 #' @method add.tsdata default
+#' @param pos the search path position to find the variable
 
-add.tsdata.default <- function(x, ...) {
+add.tsdata.default <- function(x, ..., pos=NULL) {
     if (is.character(x) && length(x)==1) {
-        x.pos <- find(x, numeric=TRUE)
-        y <- get(x)
+        if (is.null(pos))
+            pos <- find(x, numeric=TRUE)[1]
+        if (is.na(pos))
+            stop(x, ' not found')
+        y <- get(x, pos=pos)
         z <- add.tsdata(y, ...)
-        assign(x, value=z, pos=x.pos[1])
+        assign(x, value=z, pos=pos[1])
     } else {
         stop('cannot handle object with class ', class(x))
     }
@@ -36,12 +40,22 @@ add.tsdata.default <- function(x, ...) {
 #' converting back to sparsetsmat objects.
 #'
 add.tsdata.sparsetsmat <- function(x,
-                                 newdata,
-                                 ...,
-                                 sort.ids=non.null(x$sort.ids, FALSE),
-                                 drop.unneeded.dates=TRUE,
-                                 direct.df=TRUE) {
+                                   newdata,
+                                   ...,
+                                   pos=1,
+                                   sort.ids=non.null(x$sort.ids, FALSE),
+                                   drop.unneeded.dates=TRUE,
+                                   direct.df=TRUE) {
     x.is.named <- FALSE
+    if (is.character(x) && length(x)==1) {
+        if (is.null(pos))
+            pos <- find(x, numeric=TRUE)[1]
+        if (is.na(pos))
+            stop(x, ' not found')
+        x.is.named <- TRUE
+        x.name <- x
+        x <- get(x, pos=pos)
+    }
     x.df <- as.data.frame(x)
     new.ids <- NULL
     if (inherits(newdata, 'data.frame')) {
@@ -121,7 +135,10 @@ add.tsdata.sparsetsmat <- function(x,
     all.ids <- unique(c(x$ids, new.ids))
     if (sort.ids)
         all.ids <- sort(all.ids)
-    return(sparsetsmat(rbind(x.df, new.df), ids=all.ids, backfill=x$backfill, sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates))
+    x <- sparsetsmat(rbind(x.df, new.df), ids=all.ids, backfill=x$backfill, sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates)
+    if (x.is.named)
+        assign(x.name, x, pos=pos)
+    return(x)
 }
 
 arediff <- function(x, y) {
