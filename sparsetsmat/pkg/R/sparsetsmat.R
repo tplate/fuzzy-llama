@@ -96,6 +96,10 @@ NULL
 #' \code{date} component of the returned object.  In both
 #' cases, \code{all.dates} is a sorted version of the dates.
 #'
+#' @param drop.initial.NAs Logical.  For creating a
+#' sparsetsmat object from a matrix: if \code{TRUE}, initial
+#' NA's are ignored and not included in the explicit data.
+#'
 #' @param ... additional arguments for constructors
 #'
 #' @return A \code{sparsetsmat} (S3) object with the following components:
@@ -107,7 +111,7 @@ NULL
 #'
 #'   \item values The values of the underlying data.  Can be
 #' any atomic data type.  It is necessary to be able to do
-#' operations like \code{matrix(x$values[1:6], ncol=2}) on
+#' operations like \code{matrix(x$values[1:6], ncol=2)} on
 #' the values.  This vector must be the same length as
 #' \code{date}.
 #'
@@ -257,6 +261,7 @@ sparsetsmat.default <- function(x,
                                 sort.ids=non.null(attr(x, 'sort.ids'), FALSE),
                                 backfill=non.null(attr(x, 'backfill'), FALSE),
                                 drop.unneeded.dates=FALSE,
+                                drop.initial.NAs=FALSE,
                                 POSIX=FALSE,
                                 tz='UTC',
                                 ...)
@@ -299,6 +304,8 @@ sparsetsmat.default <- function(x,
         prev <- col[c(1, seq(len=length(col)-1))]
         j <- which((!is.na(col) & replace(is.na(prev) | col != prev, 1, TRUE))
                    | (is.na(col) & !is.na(prev)))
+        if (nrow(x)>0 && !drop.initial.NAs && (length(j)==0 || j[1]!=1))
+            j <- c(1, j)
         return(list(j, length(j), col[j]))
     })
     dd <- dates[unlist(lapply(res, '[[', 1), use.names=FALSE)]

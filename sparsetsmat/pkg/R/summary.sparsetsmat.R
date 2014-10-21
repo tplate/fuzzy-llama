@@ -8,7 +8,7 @@ print.sparsetsmat <- function(x, ...) {
     cat("  colnames[", ncol(x), "] class '", class(x$ids), "', ",
         describe.values(x$ids, countna=F, total=F, nuniq=F),  "\n", sep="")
     cat("  values class '", paste(class(x$values), collapse=':'), "', ",
-        describe.values(sort(unique(x$values)), countna=T, total=T, nuniq=T),  "\n", sep="")
+        describe.values(sort(unique(x$values), na.last=TRUE), countna=T, total=T, nuniq=T),  "\n", sep="")
     cat("  data.frame column names: ", paste(x$df.colnames, collapse=', '), '\n', sep='')
     invisible(x)
 }

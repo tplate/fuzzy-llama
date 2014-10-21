@@ -7,9 +7,9 @@
 \usage{
 add.tsdata(x, ...)
 
-\method{add.tsdata}{default}(x, ...)
+\method{add.tsdata}{default}(x, ..., pos = NULL)
 
-\method{add.tsdata}{sparsetsmat}(x, newdata, ...,
+\method{add.tsdata}{sparsetsmat}(x, newdata, ..., pos = 1,
   sort.ids = non.null(x$sort.ids, FALSE), drop.unneeded.dates = TRUE,
   direct.df = TRUE)
 }
@@ -17,7 +17,12 @@ add.tsdata(x, ...)
 \item{x}{An object to add time-series data to, either specified by name or by value.
 If specified by name (as a character vector), the object is changed in place.}
 
-\item{newdata}{The new data to add to the object.  Can be a dataframe, a sparsetsmat object, or matrix data.}
+\item{pos}{the search path position to find the variable}
+
+\item{newdata}{The new data to add to the object.  Can be
+a dataframe, a sparsetsmat object, or matrix data.  If
+matrix data, explicit NA's 'stop' a prior value from
+propagating forward, but missing columns do not.}
 
 \item{...}{additional arguments.}
 

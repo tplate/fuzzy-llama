@@ -275,7 +275,7 @@
                         val.idx=val.idx, val=x$values[val.idx], kk=kk))
         }
         if (vidx)
-            val <- match(x$values, sort(unique(x$values)))[val.idx]
+            val <- match(x$values, sort(unique(x$values), na.last=TRUE))[val.idx]
         else
             val <- x$values[val.idx]
         # need to put val back in the right order
@@ -345,7 +345,7 @@
             return(list(mat.idx=FALSE, i.idx=i.idx, j.idx=j.idx,
                         val.idx=val.idx, val=x$values[val.idx], k=seq(along=val.idx)))
         if (vidx)
-            val <- match(x$values, sort(unique(x$values)))[val.idx]
+            val <- match(x$values, sort(unique(x$values), na.last=TRUE))[val.idx]
         else
             val <- x$values[val.idx]
         # attach dimensions and names

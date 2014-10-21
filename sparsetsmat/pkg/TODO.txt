@@ -1,4 +1,3 @@
-* fix problem with duplicate rows with NA values -- put in test for this
 * make varray(x) work (?)
 * support sparse non-carryover data with a pre-specified default (e.g., 1, 0, NA)
 * allow the creation scenario add.tsdata.sparsetsmat('XXX', ...) where object 'XXX' doesn't exist (also support assigning in this usage)
@@ -13,6 +12,7 @@
    - out of time-order rows in the newdata arg
    - just have a single date beyond the range of the existing
 * make Extract.R efficient for factor component in data.frame indices
+* DONE: fix problem with duplicate rows with NA values -- put in test for this
 * DONE: get Cpp code working for matrix indexing
 * DONE: add backfill arg to Cpp code for square i,j indexing
 * DONE: get add.data function being more efficient for the case where adding

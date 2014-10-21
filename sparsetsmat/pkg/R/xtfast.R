@@ -153,7 +153,7 @@ xtfast.obselete <- function(x, i, j, ..., drop=TRUE, vidx=FALSE) {
             }), use.names=FALSE)
         }
         if (vidx)
-            val <- match(x$value, sort(unique(x$value)))[val.idx]
+            val <- match(x$value, sort(unique(x$value), na.last=TRUE))[val.idx]
         else
             val <- x$value[val.idx]
         # need to put val back in the right order
@@ -171,7 +171,7 @@ xtfast.obselete <- function(x, i, j, ..., drop=TRUE, vidx=FALSE) {
         if (isTRUE(any(val.idx==0)))
             stop('internal error: have some val.idx==0')
         if (vidx)
-            val <- match(x$value, sort(unique(x$value)))[val.idx]
+            val <- match(x$value, sort(unique(x$value), na.last=TRUE))[val.idx]
         else
             val <- x$value[val.idx]
         # attach dimensions and names

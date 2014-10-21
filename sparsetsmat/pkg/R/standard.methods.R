@@ -22,7 +22,7 @@ rownames.sparsetsmat <- function(x) format(x$all.dates)
 #' @method colnames sparsetsmat
 #' @description colnames: return colnames of a sparsetsmat
 colnames.sparsetsmat <- function(x) x$ids
-values <- function(x) sort(unique(x$value))
+values <- function(x) sort(unique(x$value), na.last=TRUE)
 #' is.virtual.array
 #' @method is.virtual.array sparsetsmat
 #' @param x a sparsetsmat object

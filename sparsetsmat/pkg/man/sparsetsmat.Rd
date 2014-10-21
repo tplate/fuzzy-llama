@@ -16,7 +16,8 @@ sparsetsmat(x, ...)
 \method{sparsetsmat}{default}(x, ids = attr(x, "ids"),
   sort.ids = non.null(attr(x, "sort.ids"), FALSE),
   backfill = non.null(attr(x, "backfill"), FALSE),
-  drop.unneeded.dates = FALSE, POSIX = FALSE, tz = "UTC", ...)
+  drop.unneeded.dates = FALSE, drop.initial.NAs = FALSE, POSIX = FALSE,
+  tz = "UTC", ...)
 }
 \arguments{
 \item{x}{an object with data for a sparsetsmat: either a
@@ -49,6 +50,10 @@ dates where no value changes do not appear in the
 \code{date} component of the returned object.  In both
 cases, \code{all.dates} is a sorted version of the dates.}
 
+\item{drop.initial.NAs}{Logical.  For creating a
+sparsetsmat object from a matrix: if \code{TRUE}, initial
+NA's are ignored and not included in the explicit data.}
+
 \item{...}{additional arguments for constructors}
 }
 \value{
@@ -61,7 +66,7 @@ A \code{sparsetsmat} (S3) object with the following components:
 
   \item values The values of the underlying data.  Can be
 any atomic data type.  It is necessary to be able to do
-operations like \code{matrix(x$values[1:6], ncol=2}) on
+operations like \code{matrix(x$values[1:6], ncol=2)} on
 the values.  This vector must be the same length as
 \code{date}.
 

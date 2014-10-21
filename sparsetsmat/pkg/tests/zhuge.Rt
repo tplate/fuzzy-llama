@@ -4,7 +4,7 @@
 > n <- 2537
 > m <- 12119
 > m5.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), n*m), sample(n*m, max(3*n, 1.5*m)), sample(c(letters, LETTERS), max(3*n, 1.5*m), rep=TRUE)), nrow=n, ncol=m, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=n, by='days')), paste('V', seq(m), sep=''))))
-> m5.tsm <- sparsetsmat(m5.mat)
+> m5.tsm <- sparsetsmat(m5.mat, drop.initial.NAs=TRUE)
 > head(as.data.frame(m5.tsm))
        dates ids values
 1 2001-09-17  V1      F

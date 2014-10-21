@@ -25,7 +25,10 @@ add.tsdata.default <- function(x, ..., pos=NULL) {
 
 #' @rdname add.tsdata
 #' @method add.tsdata sparsetsmat
-#' @param newdata The new data to add to the object.  Can be a dataframe, a sparsetsmat object, or matrix data.
+#' @param newdata The new data to add to the object.  Can be
+#' a dataframe, a sparsetsmat object, or matrix data.  If
+#' matrix data, explicit NA's 'stop' a prior value from
+#' propagating forward, but missing columns do not.
 #' @param ... additional arguments.
 #' @param sort.ids Same as for \code{sparsetsmat}.
 #' @param drop.unneeded.dates Same as for \code{sparsetsmat}.
@@ -88,12 +91,14 @@ add.tsdata.sparsetsmat <- function(x,
             # Try to eliminate the new data that is unchanged.
             # This is a common operation, so try to do it efficiently.
             # We can change newdata here by eliminating columns that are unchanged.
-            if (identical(colnames(x), x$ids)) {
+            if (identical(colnames(newdata), x$ids)) {
                 x.lv <- x[max(x$dates, na.rm=TRUE), , drop=FALSE]
+                if (!identical(colnames(newdata), colnames(x)))
+                    stop('mismatch in column names of x and newdata')
                 if (nrow(newdata)==1) {
-                    newdata <- newdata[1, arediff(newdata[1,], x.lv), drop=FALSE]
+                    newdata <- newdata[1, areDiff(newdata[1,], x.lv), drop=FALSE]
                 } else {
-                    newdata <- newdata[, rowSums(arediff(t(newdata), t(x.lv))), drop=FALSE]
+                    newdata <- newdata[, rowSums(areDiff(t(newdata), drop(x.lv)))>0, drop=FALSE]
                 }
             } else {
                 i <- match(colnames(newdata), x$ids)
@@ -101,9 +106,9 @@ add.tsdata.sparsetsmat <- function(x,
                     n.ic <- newdata[, !is.na(i), drop=FALSE]
                     x.ic <- x[max(x$dates, na.rm=TRUE), i[!is.na(i)], drop=FALSE]
                     if (nrow(n.ic)==1)
-                        i.diff <- arediff(x.ic, n.ic)
+                        i.diff <- areDiff(n.ic, x.ic)
                     else
-                        i.diff <- rowSums(arediff(t(x.ic), t(n.ic))) > 0
+                        i.diff <- rowSums(areDiff(t(n.ic), drop(x.ic))) > 0
                     # j is TRUE where we need to keep newdata
                     j <- is.na(i)
                     j[!is.na(i)] <- i.diff
@@ -141,7 +146,7 @@ add.tsdata.sparsetsmat <- function(x,
     return(x)
 }
 
-arediff <- function(x, y) {
+areDiff <- function(x, y) {
     xna <- is.na(x)
     yna <- is.na(y)
     return(ifelse(xna & yna, FALSE, (xna!=yna) | (x!=y)))

@@ -4,7 +4,7 @@
 > n <- 1024
 > m <- 2048
 > m4.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), n*m), sample(n*m, 3*n), sample(c(letters, LETTERS), 3*n, rep=TRUE)), nrow=n, ncol=m, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=n, by='days')), paste('V', seq(m), sep=''))))
-> m4.tsm <- sparsetsmat(m4.mat)
+> m4.tsm <- sparsetsmat(m4.mat, drop.initial.NAs=TRUE)
 > head(as.data.frame(m4.tsm))
        dates ids values
 1 2002-02-24  V1      g

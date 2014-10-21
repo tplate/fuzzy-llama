@@ -76,7 +76,7 @@ NA  4
 > all.equal(m1.tsm[cbind(c(row(v)), c(col(v)))], c(v))
 [1] TRUE
 > 
-> as.data.frame(sparsetsmat(as.matrix(m1.tsm)))
+> as.data.frame(sparsetsmat(as.matrix(m1.tsm), drop.initial.NAs=TRUE))
   dates ids values
 1     1   a      1
 2     4   a      2
@@ -86,6 +86,20 @@ NA  4
 6     2   e      6
 7     3   d      7
 8     5   d      8
+> as.data.frame(sparsetsmat(as.matrix(m1.tsm), drop.initial.NAs=FALSE))
+   dates ids values
+1      1   a      1
+2      4   a      2
+3      5   a      3
+4      1   c     NA
+5      1   b     NA
+6      2   b      4
+7      1   f     NA
+8      1   e      5
+9      2   e      6
+10     1   d     NA
+11     3   d      7
+12     5   d      8
 > 
 > # various edge cases in indexing
 > m1.tsm[,'d']
@@ -115,11 +129,11 @@ numeric(0)
 [1] TRUE
 > 
 > m1n.tsm <- sparsetsmat(m1.df, keep.df.names=F)
-> all.equal(m1n.tsm, sparsetsmat(as.matrix(m1n.tsm)))
+> all.equal(m1n.tsm, sparsetsmat(as.matrix(m1n.tsm), drop.initial.NAs=TRUE))
 [1] TRUE
 > 
 > m2.df <- data.frame(d=seq(as.Date('2001-01-01'), len=5, by='days')[
-+                         c(    1,  4,  5,  2,  1,  2,  3,  5)],
++                         c(  1,  4,  5,  2,  1,  2,  3,  5)],
 +                       p=c('a','a','a','b','e','e','d','d'),
 +                       v=c(  1,  2,  3,  4,  5,  6,  7,  8))
 > m2.tsm <- sparsetsmat(m2.df, sort.ids=TRUE)
@@ -130,4 +144,17 @@ numeric(0)
 2001-01-03 1  4  7 6
 2001-01-04 2  4  7 6
 2001-01-05 3  4  8 6
+> 
+> m2n.df <- data.frame(d=seq(as.Date('2001-01-01'), len=5, by='days')[
++                          c(  1,  4,  5,  2,  1,  2,  3,  5, 4)],
++                        p=c('a','a','a','b','e','e','d','d','b'),
++                        v=c(  1,  2,  3,  4,  5,  6,  7,  8, NA))
+> m2n.tsm <- sparsetsmat(m2n.df, sort.ids=TRUE)
+> m2n.tsm[, ]
+           a  b  d e
+2001-01-01 1 NA NA 5
+2001-01-02 1  4 NA 6
+2001-01-03 1  4  7 6
+2001-01-04 2 NA  7 6
+2001-01-05 3 NA  8 6
 > 

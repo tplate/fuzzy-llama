@@ -1,7 +1,7 @@
 > options(error=function(x) NULL)
 > set.seed(1)
 > m6.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 23*17), sample(23*17, 52), c(letters, LETTERS)), nrow=23, ncol=17, dimnames=list(as.character(seq(as.POSIXct('2001-01-01'), len=23, by='days')), paste('V', 1:17, sep=''))))
-> m6.tsm <- sparsetsmat(m6.mat)
+> m6.tsm <- sparsetsmat(m6.mat, drop.initial.NAs=TRUE)
 > as.data.frame(m6.tsm)
         dates ids values
 1  2001-01-05  V1      A
