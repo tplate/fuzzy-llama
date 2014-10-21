@@ -1,3 +1,4 @@
+* allow the creation scenario add.tsdata.varray('XXX', ...) where object 'XXX' doesn't exist (also support assigning in this usage)
 * add need.dimnames arg to add.tsdata.varray
 * add tests for multi-valued keep.ordered in add.tsdata.varray
 * DONE: remove args or add functionality for vmode, holidays & dates.by in add.tsdata.varray
