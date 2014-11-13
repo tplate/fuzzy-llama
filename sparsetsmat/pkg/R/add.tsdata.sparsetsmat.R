@@ -32,6 +32,7 @@ add.tsdata.default <- function(x, ..., pos=NULL) {
 #' @param ... additional arguments.
 #' @param sort.ids Same as for \code{sparsetsmat}.
 #' @param drop.unneeded.dates Same as for \code{sparsetsmat}.
+#' @param shadow If TRUE, drop all data in x that is preceeded by data in newdata (i.e., newdata casts a shadow over x)
 #' @param direct.df If TRUE, treat newdata as a standard
 #' data.frame representation of a sparse tsmat object; i.e.,
 #' dates are in column 1, ids in column 2, and values in
@@ -48,6 +49,7 @@ add.tsdata.sparsetsmat <- function(x,
                                    pos=1,
                                    sort.ids=non.null(x$sort.ids, FALSE),
                                    drop.unneeded.dates=TRUE,
+                                   shadow=FALSE,
                                    direct.df=TRUE) {
     x.is.named <- FALSE
     if (is.character(x) && length(x)==1) {
@@ -67,6 +69,7 @@ add.tsdata.sparsetsmat <- function(x,
                 stop('newdata has ', ncol(newdata), ' columns; need 3')
             new.df <- newdata
             new.ids <- unique(newdata[[2]])
+            new.tsm <- NULL
         } else {
             new.tsm <- sparsetsmat(newdata, ..., sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates)
             new.df <- as.data.frame(new.tsm)
@@ -140,6 +143,54 @@ add.tsdata.sparsetsmat <- function(x,
     all.ids <- unique(c(x$ids, new.ids))
     if (sort.ids)
         all.ids <- sort(all.ids)
+    # Look to see which records should be dropped from x.df for the reason of
+    # being overridden by new records in new.df.
+    # If not all records in new.df start with the same date, then do the
+    # dropping piecewise.
+    if (shadow && is.null(new.tsm)) {
+        if (!direct.df)
+            stop('internal problem')
+        if (min(new.df$dates) <= max(x$dates)) {
+            # The tapply(..., FUN=min) on Date or POSIXct will return numeric
+            new.id.stdate <- tapply(new.df$dates, new.df$ids, min)
+            x.ids.new.idx <- match(x.df$ids, names(new.id.stdate))
+            x.df.newst <- new.id.stdate[x.ids.new.idx]
+            x.df <- x.df[is.na(x.ids.new.idx) | as.numeric(x.df$dates) < x.df.newst, , drop=FALSE]
+        }
+    } else if (shadow && min(new.tsm$dates) <= max(x$dates)) {
+        # Trim ids down to those actually present.
+        new.ids2.idx <- which(new.tsm$id.noc>0)
+        new.ids2 <- new.tsm$ids[new.ids2.idx]
+        if (length(new.ids2.idx)) {
+            # what start dates?
+            new.ids2.stdate <- new.tsm$dates[new.tsm$id.idx[new.ids2.idx]]
+            if (all(new.ids2.stdate == min(new.ids2.stdate))) {
+                old.alone.ids <- setdiff(x$ids, new.ids2)
+                # all new ids have the same date
+                if (length(old.alone.ids)==0) {
+                    x.df <- x.df[x.df$dates < min(new.ids2.stdate), , drop=FALSE]
+                } else {
+                    x.ids.new.idx <- match(x.df$ids, new.tsm$ids)
+                    x.df <- x.df[x.df$dates < min(new.ids2.stdate) | is.na(x.ids.new.idx), , drop=FALSE]
+                }
+            } else {
+                # new ids have a variety of start dates
+                x.ids.new.idx <- match(x.df$ids, new.tsm$ids)
+                x.df.newst <- new.tsm$dates[new.tsm$id.idx[x.ids.new.idx]]
+                x.df <- x.df[is.na(x.ids.new.idx) | x.df$dates < x.df.newst, , drop=FALSE]
+            }
+        }
+    } else if (!shadow && min(new.df$dates) <= max(x$dates)) {
+        # only remove direct conflicts (elements of new.df take priority over those of x.df)
+        # can assume existence of x.df, x (tsm) and new.df
+        new.ids.u <- unique(new.df$ids)
+        new.dates.u <- as.numeric(unique(new.df$dates))
+        new.ii <- match(as.numeric(new.df$dates), new.dates.u) * length(new.ids.u) + match(new.df$ids, new.ids.u)
+        x.ii <- match(as.numeric(x.df$dates), new.dates.u) * length(new.ids.u) + match(x.df$ids, new.ids.u)
+        x.keep <- !is.element(x.ii, new.ii)
+        if (!all(x.keep))
+            x.df <- x.df[x.keep, , drop=FALSE]
+    }
     x <- sparsetsmat(rbind(x.df, new.df), ids=all.ids, backfill=x$backfill, sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates)
     if (x.is.named)
         assign(x.name, x, pos=pos)

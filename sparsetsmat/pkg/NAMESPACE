@@ -1,6 +1,7 @@
 useDynLib(sparsetsmat)
 importFrom(Rcpp, evalCpp, sourceCpp)
 export(sparsetsmat, add.tsdata, is.virtual.array, add.tsdata.sparsetsmat)
+export(`[<-.sparsetsmat`)
 S3method(sparsetsmat, data.frame)
 S3method(sparsetsmat, matrix)
 S3method(add.tsdata, sparsetsmat)
@@ -15,4 +16,4 @@ S3method(rownames, sparsetsmat)
 S3method(print, sparsetsmat)
 S3method(is.virtual.array, sparsetsmat)
 S3method('[', sparsetsmat)
-
+S3method('[<-', sparsetsmat)

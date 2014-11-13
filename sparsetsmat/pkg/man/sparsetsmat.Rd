@@ -54,6 +54,8 @@ cases, \code{all.dates} is a sorted version of the dates.}
 sparsetsmat object from a matrix: if \code{TRUE}, initial
 NA's are ignored and not included in the explicit data.}
 
+\item{default}{The default value for items (not yet implemented)}
+
 \item{...}{additional arguments for constructors}
 }
 \value{
@@ -86,9 +88,12 @@ which will not be recorded in the \code{dates} component.
 Will be sorted unless drop.unneeded.dates was FALSE and x
 was a matrix with out-of-order dates as rownames.
 
-   \item df.colnames colnames of the data.frame version
+  \item df.colnames colnames of the data.frame version
 
   \item backfill logical
+
+  \item default Single value of same type as underlying
+data.  If this component is missing, NA is used.
 }
 
 The data are grouped by \code{ids} (possibly sorted) first

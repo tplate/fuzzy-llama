@@ -18,9 +18,9 @@
     else
         stop('unexpected number of indices')
     if (inherits(x$dates, 'Date'))
-        y$i <- as.Date(y$i.idx)
+        y$i <- as.Date(y$i.idx, origin='1970-01-01')
     else if (inherits(x$dates, 'Date'))
-        y$i <- as.POSIXct(y$i.idx, tz='UTC')
+        y$i <- as.POSIXct(y$i.idx, tz='UTC', origin='1970-01-01')
     else
         y$i <- y$i.idx
     # get the values in the same order as the indices in y

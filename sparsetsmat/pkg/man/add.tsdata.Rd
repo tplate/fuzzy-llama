@@ -11,7 +11,7 @@ add.tsdata(x, ...)
 
 \method{add.tsdata}{sparsetsmat}(x, newdata, ..., pos = 1,
   sort.ids = non.null(x$sort.ids, FALSE), drop.unneeded.dates = TRUE,
-  direct.df = TRUE)
+  shadow = FALSE, direct.df = TRUE)
 }
 \arguments{
 \item{x}{An object to add time-series data to, either specified by name or by value.
@@ -29,6 +29,8 @@ propagating forward, but missing columns do not.}
 \item{sort.ids}{Same as for \code{sparsetsmat}.}
 
 \item{drop.unneeded.dates}{Same as for \code{sparsetsmat}.}
+
+\item{shadow}{If TRUE, drop all data in x that is preceeded by data in newdata (i.e., newdata casts a shadow over x)}
 
 \item{direct.df}{If TRUE, treat newdata as a standard
 data.frame representation of a sparse tsmat object; i.e.,
