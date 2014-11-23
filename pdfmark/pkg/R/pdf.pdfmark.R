@@ -1,4 +1,4 @@
-#' Add bookmarks to a pdf file using ghostscript
+#' Add bookmarks to a pdf file using ghostscript.
 #' @param pdfin The name of the pdf file to add bookmarks to
 #' @param pdfmark A dataframe of pdf bookmarks
 #' @param pdfout (optional) if supplied, this file will contain the output.  If not supplied, pdfin will be overwritten
