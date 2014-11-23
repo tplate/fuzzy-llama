@@ -100,8 +100,6 @@ NULL
 #' sparsetsmat object from a matrix: if \code{TRUE}, initial
 #' NA's are ignored and not included in the explicit data.
 #'
-#' @param default The default value for items (not yet implemented)
-#'
 #' @param ... additional arguments for constructors
 #'
 #' @return A \code{sparsetsmat} (S3) object with the following components:
@@ -136,10 +134,6 @@ NULL
 #'   \item df.colnames colnames of the data.frame version
 #'
 #'   \item backfill logical
-#'
-#'   \item default Single value of same type as underlying
-#' data.  If this component is missing, NA is used.
-#' }
 #'
 #' The data are grouped by \code{ids} (possibly sorted) first
 #' and sorted by \code{dates} second.  If there are no values

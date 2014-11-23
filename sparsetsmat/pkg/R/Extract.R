@@ -344,10 +344,12 @@
         if (details)
             return(list(mat.idx=FALSE, i.idx=i.idx, j.idx=j.idx,
                         val.idx=val.idx, val=x$values[val.idx], k=seq(along=val.idx)))
-        if (vidx)
+        if (vidx) {
             val <- match(x$values, sort(unique(x$values), na.last=TRUE))[val.idx]
-        else
+        } else {
             val <- x$values[val.idx]
+            # if (!is.null(x$default) && !is.na(x$default)) val[which(is.na(val.idx))] <- x$default
+        }
         # attach dimensions and names
         if (drop && length(i)==1) {
             if (length(j)>1)
