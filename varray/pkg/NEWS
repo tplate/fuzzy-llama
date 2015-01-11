@@ -1,7 +1,12 @@
+                CHANGES in varray version 1.0-13 (2015-01-11)
+CHANGES
+    o   added clear.dim= argument to add.data() and add.tsdata() methods
+
                 CHANGES in varray version 1.0-12 (2014-07-11)
 CHANGES
     o   changed documention to roxygen2
     o   changed add.data and add.tsdata methods to be functional or have side effects
+
                 CHANGES in varray version 1.0-9 (2014-04-18)
 CHANGES
     o   renamed update.varray.ts to add.tsdata.varray (to avoid defining unrelated methods for the 'update' generic)
