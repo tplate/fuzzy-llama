@@ -475,6 +475,33 @@ mode.varray <- function(x) mode(sapply(x$info, '[[', 'sample'))
 #' @method storage.mode varray
 storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
 
+#' @describeIn varray.methods Return the first part of a varray.
+#' @method head varray
+head.varray <- function (x, n = 6L, ...)
+{
+    stopifnot(length(n) == 1L)
+    n <- if (n < 0L)
+        max(nrow(x) + n, 0L)
+    else min(n, nrow(x))
+    asub(x, list(seq_len(n)), 1, drop = FALSE)
+}
+
+#' @describeIn varray.methods Return the last part of a varray.
+#' @method tail varray
+tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
+{
+    stopifnot(length(n) == 1L)
+    nrx <- nrow(x)
+    n <- if (n < 0L)
+        max(nrx + n, 0L)
+    else min(n, nrx)
+    sel <- seq.int(to = nrx, length.out = n)
+    ans <- asub(x, list(sel), 1, drop = FALSE)
+    if (addrownums && is.null(rownames(x)))
+        rownames(ans) <- paste0("[", sel, ",]")
+    ans
+}
+
 #' @describeIn varray.methods Returns a subset of a varray objects
 #' @method [ varray
 "[.varray" <- function(x, ..., drop=TRUE) {

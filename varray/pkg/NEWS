@@ -1,3 +1,6 @@
+                CHANGES in varray version 1.0-13 (2015-02-04)
+CHANGES
+    o   added methods for head() and tail()
                 CHANGES in varray version 1.0-12 (2014-07-11)
 CHANGES
     o   changed documention to roxygen2

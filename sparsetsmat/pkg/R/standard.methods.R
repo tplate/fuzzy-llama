@@ -44,3 +44,32 @@ is.virtual.array <- function(x) UseMethod('is.virtual.array')
 is.virtual.array.default <- function(x) FALSE
 #' @rdname is.virtual.array
 is.virtual.array.sparsetsmat <- function(x) TRUE
+
+#' @rdname standard.array.methods
+#' @method head sparsetsmat
+#' @description head: return the first part of a sparse matrix.
+head.sparsetsmat <- function (x, n = 6L, ...)
+{
+    stopifnot(length(n) == 1L)
+    n <- if (n < 0L)
+        max(nrow(x) + n, 0L)
+    else min(n, nrow(x))
+    x[seq_len(n), , drop = FALSE]
+}
+
+#' @rdname standard.array.methods
+#' @method tail sparsetsmat
+#' @description tail: return the last part of a sparse matrix.
+tail.sparsetsmat <- function (x, n = 6L, addrownums = TRUE, ...)
+{
+    stopifnot(length(n) == 1L)
+    nrx <- nrow(x)
+    n <- if (n < 0L)
+        max(nrx + n, 0L)
+    else min(n, nrx)
+    sel <- seq.int(to = nrx, length.out = n)
+    ans <- x[sel, , drop = FALSE]
+    if (addrownums && is.null(rownames(x)))
+        rownames(ans) <- paste0("[", sel, ",]")
+    ans
+}
