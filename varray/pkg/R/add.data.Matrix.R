@@ -21,6 +21,10 @@
 #'
 #' @param envir where to find the object, or where to create it if it does not already exist
 #'
+#' @param clear.dim numeric: dimension indices for which to
+#' clear all values when present, e.g., with clear.dim=1,
+#' all rows that match a row supplied in newdata are cleared
+#'
 #' @param \dots Not used, but needed because \code{add.data()} could be a generic.
 #'
 #' @details
@@ -75,6 +79,7 @@ add.data.Matrix <- function(x,
                             newdata,
                             need.dimnames=list(NULL, NULL),
                             keep.ordered=TRUE,
+                            clear.dim=NULL,
                             ...,
                             envir=NULL) {
     # have ... args to satisfy the generic add.data()
@@ -105,8 +110,20 @@ add.data.Matrix <- function(x,
     }
     if (!inherits(newdata, 'Matrix') && !is.matrix(newdata))
         stop('newdata must be a Matrix or a matrix')
-    if (newObj)
+    if (newObj) {
         x <- Matrix(newdata, sparse=TRUE)
+    } else if (length(clear.dim)) {
+        if (is.element(1, clear.dim)) {
+            ii <- intersect(rownames(x), rownames(newdata))
+            if (length(ii))
+                x[ii,] <- 0
+        }
+        if (is.element(2, clear.dim)) {
+            ii <- intersect(colnames(x), colnames(newdata))
+            if (length(ii))
+                x[,ii] <- 0
+        }
+    }
     dn <- list(unique(c(rownames(x), rownames(newdata), need.dimnames[[1]])),
                unique(c(colnames(x), colnames(newdata), need.dimnames[[2]])))
     keep.ordered <- rep(keep.ordered, length.out=length(dim(x)))
@@ -146,6 +163,7 @@ add.data.matrix <- function(x,
                             newdata,
                             need.dimnames=list(NULL, NULL),
                             keep.ordered=TRUE,
+                            clear.dim=NULL,
                             ...,
                             envir=NULL) {
     # have ... args to satisfy the generic add.data()
@@ -174,8 +192,20 @@ add.data.matrix <- function(x,
         if (!is.matrix(x))
             stop('x is not a matrix')
     }
-    if (newObj)
+    if (newObj) {
         x <- as.matrix(newdata)
+    } else if (length(clear.dim)) {
+        if (is.element(1, clear.dim)) {
+            ii <- intersect(rownames(x), rownames(newdata))
+            if (length(ii))
+                x[ii,] <- 0
+        }
+        if (is.element(2, clear.dim)) {
+            ii <- intersect(colnames(x), colnames(newdata))
+            if (length(ii))
+                x[,ii] <- 0
+        }
+    }
     dn <- list(unique(c(rownames(x), rownames(newdata), need.dimnames[[1]])),
                unique(c(colnames(x), colnames(newdata), need.dimnames[[2]])))
     keep.ordered <- rep(keep.ordered, length.out=length(dim(x)))

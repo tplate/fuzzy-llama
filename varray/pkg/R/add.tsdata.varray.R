@@ -32,6 +32,10 @@
 #' @param envir
 #' Intended to be the environment where the components exist,
 #' not yet fully tested.
+#' @param clear.dim numeric: dimension indices for which to
+#' clear all values when present, e.g., with clear.dim=1,
+#' all rows that match a row supplied in newdata are cleared
+#'
 #' @param naidxok
 #' Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.
 #' @param keep.ordered
@@ -92,7 +96,7 @@ add.tsdata.default <- function(x, ...) {
 add.tsdata.varray <- function(x, newdata, comp.name=va$comp.name, dateblock='%Y', format=va$format,
                               # dates.by='bizdays', holidays='NYSEC', vmode='single',
                               along=va$along, dimorder=va$dimorder,
-                              env.name=NULL, envir=NULL, naidxok=va$naidxok,
+                              env.name=NULL, envir=NULL, clear.dim=NULL, naidxok=va$naidxok,
                               need.dimnames=list(NULL, NULL),
                               keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE,
                               fill=NA, ...) {
@@ -304,6 +308,18 @@ add.tsdata.varray <- function(x, newdata, comp.name=va$comp.name, dateblock='%Y'
                 va$info[[this.i]]$dim <- sapply(new.dn, length)
             }
             # load values into the component
+            if (length(clear.dim)) {
+                if (is.element(1, clear.dim)) {
+                    ii <- intersect(rownames(comp.data), rownames(this.datar))
+                    if (length(ii))
+                        comp.data[ii,] <- fill
+                }
+                if (is.element(2, clear.dim)) {
+                    ii <- intersect(rownames(comp.data), rownames(this.datar))
+                    if (length(ii))
+                        comp.data[ii,] <- fill
+                }
+            }
             afill(comp.data) <- this.datar
             # and save the component
             assign(va$info[[this.i]]$name, envir=env, value=comp.data, inherits=FALSE)
