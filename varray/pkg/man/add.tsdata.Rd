@@ -12,9 +12,9 @@ add.tsdata(x, ...)
 \method{add.tsdata}{varray}(x, newdata, comp.name = va$comp.name,
   dateblock = "\%Y", format = va$format, along = va$along,
   dimorder = va$dimorder, env.name = NULL, envir = NULL,
-  naidxok = va$naidxok, need.dimnames = list(NULL, NULL),
-  keep.ordered = va$keep.ordered, umode = NULL, store.env.name = FALSE,
-  fill = NA, ...)
+  clear.dim = NULL, naidxok = va$naidxok, need.dimnames = list(NULL,
+  NULL), keep.ordered = va$keep.ordered, umode = NULL,
+  store.env.name = FALSE, fill = NA, ...)
 }
 \arguments{
 \item{x}{An object to add time-series data to, either specified by name or by value.
@@ -43,6 +43,10 @@ not yet fully tested.}
 
 \item{envir}{Intended to be the environment where the components exist,
 not yet fully tested.}
+
+\item{clear.dim}{numeric: dimension indices for which to
+clear all values when present, e.g., with clear.dim=1,
+all rows that match a row supplied in newdata are cleared}
 
 \item{naidxok}{Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.}
 

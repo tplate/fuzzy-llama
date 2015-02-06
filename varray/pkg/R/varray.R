@@ -1,4 +1,3 @@
-
 #' Construct a virtual array
 #'
 #' Construct a virtual array by binding together supplied
@@ -80,7 +79,8 @@
 #'
 #' All the data associated with a single element of the binding dimension
 #' (the \code{along} dimension) must be stored in a single one of the
-#' component objects.
+#' component objects.  If different components given to \code{varray}
+#' repeat an item of the along dimension, \code{varray} stops with an error.
 #'
 #' \code{rebuild.varray()} rebuilds a varray object and can be used when
 #' the underlying objects have changed.
@@ -219,6 +219,11 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
         along.idx[match(info[[i]]$dimnames[[alongd]], dn[[along]])] <- i
         info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], info[[i]]$dimnames[[rdimorder[j]]]))[rdimorder]
     }
+    # check whether we have repeated dim elements on the 'along' dimension
+    along.idx.all <- unlist(lapply(info, function(i) i$dimnames[[alongd]]))
+    if (any(duplicated(along.idx.all)))
+        stop('have some repeated dimension elements on along dimension (', along, '): ',
+             some.examples(along.idx.all[duplicated(along.idx.all)], collapse=', '))
     # Components of a varray object (everything at the top level is stored in terms of user dimensions)
     # dim:       the combined dim
     # dimnames:  the combined dimnames
@@ -477,6 +482,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
 
 #' @describeIn varray.methods Return the first part of a varray.
 #' @method head varray
+#' @param n the number of rows to return
 head.varray <- function (x, n = 6L, ...)
 {
     stopifnot(length(n) == 1L)
@@ -488,6 +494,7 @@ head.varray <- function (x, n = 6L, ...)
 
 #' @describeIn varray.methods Return the last part of a varray.
 #' @method tail varray
+#' @param addrownums should row numbers be added if there are none?
 tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
 {
     stopifnot(length(n) == 1L)
@@ -694,11 +701,35 @@ tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
                     ii <- floor(ii / d[j])
             }
         } else if (is.matrix(..1)) {
+            # matrix indexing
             if (ncol(..1)!=length(d))
-                stop("a single argument must be a ", length(d), " column matrix")
-            if (mode(..1)!="numeric")
-                stop("matrix indexing only works with numeric matrices")
-            mi <- ..1[,so,drop=FALSE]
+                stop("a single matrix index argument must be a ", length(d), " column matrix")
+            if (mode(..1)=="numeric")
+                mi <- ..1[,so,drop=FALSE]
+            else if (mode(..1)=="character")
+                mi <- do.call('cbind',
+                              lapply(seq(len=length(dn)),
+                                     function(i) match(..1[,i], dn[[i]])))[,so,drop=FALSE]
+            else
+                stop("matrix indexing only works with numeric or character matrices")
+            vi <- NULL
+        } else if (is.list(..1)) {
+            # like matrix indexing but with data.frame or list
+            if (length(..1)!=length(d))
+                stop("a list or data frame index argument must have ", length(d), " columns")
+            k <- setdiff(sapply(..1, length), 1)
+            if (length(k)>1)
+                stop('list index different length components')
+            if (length(k)==0) k <- length(..1[[1]])
+            mi <- do.call('cbind',
+                          lapply(seq(len=length(dn)),
+                                 function(i) {
+                                     j <- match(..1[[i]], dn[[i]])
+                                     if (length(j)!=k)
+                                         return(rep(j, length.out=k))
+                                     else
+                                         return(j)
+                                     }))[,so,drop=FALSE]
             vi <- NULL
         } else {
             stop("a single argument must be a ", length(d), " column matrix or a vector")

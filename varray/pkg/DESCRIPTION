@@ -1,6 +1,6 @@
 Package: varray
-Version: 1.0-14
-Date: 2015-02-04
+Version: 1.0-15
+Date: 2015-02-05
 Title: Create virtual arrays
 Author: Tony Plate <tplate@acm.org>
 Maintainer: Tony Plate <tplate@acm.org>
@@ -14,5 +14,6 @@ License: LGPL (>=2)
 Packaged: 2012-05-06 03:10:24 UTC; Tony
 Imports:
     abind,
-    Matrix
+    Matrix,
+    utils
 Roxygen: list(wrap = FALSE)

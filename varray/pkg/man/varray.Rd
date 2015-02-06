@@ -85,7 +85,8 @@ the search list of environments.
 
 All the data associated with a single element of the binding dimension
 (the \code{along} dimension) must be stored in a single one of the
-component objects.
+component objects.  If different components given to \code{varray}
+repeat an item of the along dimension, \code{varray} stops with an error.
 
 \code{rebuild.varray()} rebuilds a varray object and can be used when
 the underlying objects have changed.

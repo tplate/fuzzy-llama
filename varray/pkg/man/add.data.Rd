@@ -11,10 +11,10 @@ add.data(x, ...)
 \method{add}{data.default}(x, ...)
 
 \method{add}{data.Matrix}(x, newdata, need.dimnames = list(NULL, NULL),
-  keep.ordered = TRUE, ..., envir = NULL)
+  keep.ordered = TRUE, clear.dim = NULL, ..., envir = NULL)
 
 \method{add}{data.matrix}(x, newdata, need.dimnames = list(NULL, NULL),
-  keep.ordered = TRUE, ..., envir = NULL)
+  keep.ordered = TRUE, clear.dim = NULL, ..., envir = NULL)
 }
 \arguments{
 \item{x}{An object to add data to, either specified by name or by value.
@@ -34,6 +34,10 @@ length equal to the number of dimensions of
 \code{object}.}
 
 \item{envir}{where to find the object, or where to create it if it does not already exist}
+
+\item{clear.dim}{numeric: dimension indices for which to
+clear all values when present, e.g., with clear.dim=1,
+all rows that match a row supplied in newdata are cleared}
 
 \item{\dots}{Not used, but needed because \code{add.data()} could be a generic.}
 }

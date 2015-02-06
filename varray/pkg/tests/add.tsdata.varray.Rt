@@ -2,7 +2,7 @@
 > x <- array(1:45, dim=c(15, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=15, by='months')), c('A','B','C')))
 > y <- array(101:121, dim=c(7, 3), dimnames=list(format(seq(as.Date(rownames(x)[nrow(x)]), len=7, by='months')), c('B','C','D')))
 > z <- array(1:72, dim=c(24, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=24, by='months')), c('A','B','C')))
-> as.array(varray(x, y, along=1))
+> as.array(varray(x, y[-1,], along=1))
             A   B   C   D
 2001-05-01  1  16  31  NA
 2001-06-01  2  17  32  NA
@@ -82,6 +82,7 @@
 2003-04-01 24  48  72  NA
 > 
 > # Need tests for permuted component
+> if (exists('vvt')) rm(list='vvt')
 > add.tsdata.varray('vvt', x, comp.name='vvt.%Y', along=1, dimorder=2:1)
 > as.array(vvt)
             A  B  C

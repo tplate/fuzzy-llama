@@ -8,11 +8,13 @@
 \alias{dim<-.varray}
 \alias{dimnames.varray}
 \alias{dimnames<-.varray}
+\alias{head.varray}
 \alias{length<-.varray}
 \alias{mode.varray}
 \alias{mode<-.varray}
 \alias{print.varray}
 \alias{storage.mode.varray}
+\alias{tail.varray}
 \alias{varray.methods}
 \alias{vstorage.mode}
 \alias{vstorage.mode.varray}
@@ -35,6 +37,10 @@ varray.methods()
 \method{mode}{varray}(x)
 
 \method{storage.mode}{varray}(x)
+
+\method{head}{varray}(x, n = 6L, ...)
+
+\method{tail}{varray}(x, n = 6L, addrownums = TRUE, ...)
 
 \method{[}{varray}(x, ..., drop = TRUE)
 
@@ -68,6 +74,10 @@ vstorage.mode(x) <- value
 \item{value}{new values to use}
 
 \item{deep}{should individual components be inspected to determine the result?}
+
+\item{n}{the number of rows to return}
+
+\item{addrownums}{should row numbers be added if there are none?}
 }
 \description{
 Common matrix and array methods for varray objects
@@ -87,6 +97,10 @@ Common matrix and array methods for varray objects
 \item \code{mode}: Return 'mode' of data in a varray object
 
 \item \code{storage.mode}: Return 'storage.mode' of data in a varray object
+
+\item \code{head}: Return the first part of a varray.
+
+\item \code{tail}: Return the last part of a varray.
 
 \item \code{[}: Returns a subset of a varray objects
 

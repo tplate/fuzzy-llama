@@ -1,6 +1,14 @@
+                CHANGES in varray version 1.0-15 (2015-02-05)
+CHANGES
+    o   matrix indexing with character vectors now works
+    o   matrix indexing works for data frames and lists too
+    o   report an error when calling varray(x, y, ...) if any of the sub-arrays
+    	have repeated elements on the along dimension
+
                 CHANGES in varray version 1.0-14 (2015-02-04)
 CHANGES
     o   added methods for head() and tail()
+
                 CHANGES in varray version 1.0-13 (2015-01-11)
 CHANGES
     o   added clear.dim= argument to add.data() and add.tsdata() methods

@@ -3,6 +3,12 @@
 > y <- array(101:121, dim=c(7, 3), dimnames=list(format(seq(as.Date(rownames(x)[nrow(x)]), len=7, by='months')), c('B','C','D')))
 > z <- array(1:72, dim=c(24, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=24, by='months')), c('A','B','C')))
 > as.array(varray(x, y, along=1))
+#@gsub('error in evaluating .*', '', both)
+#@gsub('Error in .*', 'Error in ...', both)
+Error in as.array(varray(x, y, along = 1)) : 
+  error in evaluating the argument 'x' in selecting a method for function 'as.array': Error in varray(x, y, along = 1) : 
+  have some repeated dimension elements on along dimension (1): 2002-07-01
+> as.array(varray(x, y[-1,], along=1))
             A   B   C   D
 2001-05-01  1  16  31  NA
 2001-06-01  2  17  32  NA
@@ -82,6 +88,7 @@
 2003-04-01 24  48  72  NA
 > 
 > # Need tests for permuted component
+> if (exists('vvt')) rm(list='vvt')
 > update.varray.ts('vvt', x, comp.name='vvt.%Y', along=1, dimorder=2:1)
 > as.array(vvt)
             A  B  C
