@@ -48,6 +48,7 @@ is.virtual.array.sparsetsmat <- function(x) TRUE
 #' @rdname standard.array.methods
 #' @method head sparsetsmat
 #' @description head: return the first part of a sparse matrix.
+#' @param n the number of rows to return
 head.sparsetsmat <- function (x, n = 6L, ...)
 {
     stopifnot(length(n) == 1L)
@@ -60,6 +61,7 @@ head.sparsetsmat <- function (x, n = 6L, ...)
 #' @rdname standard.array.methods
 #' @method tail sparsetsmat
 #' @description tail: return the last part of a sparse matrix.
+#' @param addrownums should row numbers be added if there are none?
 tail.sparsetsmat <- function (x, n = 6L, addrownums = TRUE, ...)
 {
     stopifnot(length(n) == 1L)

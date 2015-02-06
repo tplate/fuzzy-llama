@@ -5,10 +5,12 @@
 \alias{colnames.sparsetsmat}
 \alias{dim.sparsetsmat}
 \alias{dimnames.sparsetsmat}
+\alias{head.sparsetsmat}
 \alias{ncol.sparsetsmat}
 \alias{nrow.sparsetsmat}
 \alias{print.sparsetsmat}
 \alias{rownames.sparsetsmat}
+\alias{tail.sparsetsmat}
 \title{Standard matrix/array methods for sparsetsmat objects}
 \usage{
 \method{as.matrix}{sparsetsmat}(x, ...)
@@ -27,12 +29,20 @@
 
 \method{colnames}{sparsetsmat}(x)
 
+\method{head}{sparsetsmat}(x, n = 6L, ...)
+
+\method{tail}{sparsetsmat}(x, n = 6L, addrownums = TRUE, ...)
+
 \method{print}{sparsetsmat}(x, ...)
 }
 \arguments{
 \item{x}{a sparsetsmat object}
 
 \item{...}{additional arguments}
+
+\item{n}{the number of rows to return}
+
+\item{addrownums}{should row numbers be added if there are none?}
 }
 \description{
 as.matrix: Convert a sparsetsmat object to an ordinary (non-sparse) matrix
@@ -50,5 +60,9 @@ ncol: return number of cols of a sparsetsmat
 rownames: return rownames of a sparsetsmat
 
 colnames: return colnames of a sparsetsmat
+
+head: return the first part of a sparse matrix.
+
+tail: return the last part of a sparse matrix.
 }
 

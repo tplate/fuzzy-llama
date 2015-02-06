@@ -134,6 +134,7 @@ NULL
 #'   \item df.colnames colnames of the data.frame version
 #'
 #'   \item backfill logical
+#' }
 #'
 #' The data are grouped by \code{ids} (possibly sorted) first
 #' and sorted by \code{dates} second.  If there are no values
