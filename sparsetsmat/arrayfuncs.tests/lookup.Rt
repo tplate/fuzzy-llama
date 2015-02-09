@@ -1,0 +1,44 @@
+> x1 <- data.frame(a=letters[1:6], v=1:6)
+> x2 <- data.frame(a=rep(letters[1:3], each=3), b=rep(LETTERS[1:3], 3), v=1:9)
+> lookup(x1, a=letters[5:7], row.names='data')
+   a  v
+5  e  5
+6  f  6
+NA g NA
+> lookup(x1, a=letters[5:7], row.names='zap')
+  a  v
+1 e  5
+2 f  6
+3 g NA
+> lookup(x1, a=x1[5:7,'a',drop=F], row.names='zap')
+     a  v
+1    e  5
+2    f  6
+3 <NA> NA
+> lookup(x1, a=x1[5:7,'a',drop=F], row.names='idx')
+      a  v
+5     e  5
+6     f  6
+NA <NA> NA
+> lookup(x1, a=x1[5:6,'a',drop=F], row.names='idx')
+  a v
+5 e 5
+6 f 6
+> lookup(x1, a=x1[5:6,'a',drop=F], row.names='zap')
+  a v
+1 e 5
+2 f 6
+> lookup(x1, a=x1[5:6,'a',drop=F], row.names='data')
+  a v
+5 e 5
+6 f 6
+> lookup(x1, a='a', b='B')
+Error in lookup(x1, a = "a", b = "B") : some index columns not in x: b
+> lookup(x2, a='a', b='B')
+  a b v
+1 a B 2
+> lookup(x2, a=c('a','a'), b=c('C','B'))
+  a b v
+1 a B 2
+2 a C 3
+> 

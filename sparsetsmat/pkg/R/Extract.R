@@ -197,7 +197,8 @@
                 stop('cannot mix +ve and -ve numbers in numeric j index')
             j <- seq(length(x$ids))[j]
         }
-        if (any(j < 1) || any(j > length(x$ids)))
+        j.na <- is.na(j)
+        if (any(j[!j.na] < 1) || any(j[!j.na] > length(x$ids)))
             stop('j out of range')
         j.idx <- j
         j.dn <- x$ids[j]

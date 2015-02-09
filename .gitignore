@@ -15,6 +15,7 @@
 .Rdata
 
 rdatadir
+last.dump.rda
 
 pkg.tests
 tmp*

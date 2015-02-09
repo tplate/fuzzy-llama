@@ -1,0 +1,30 @@
+> library(Matrix)
+> x <- cbind(A=c(a=1,b=2,c=3), B=4:6)
+> ii <- cbind(c('a','c','d'),c('A','B','C'))
+> lookup.arr(x, ii)
+[1]  1  6 NA
+> lookup.arr(x, ii, missing=F)
+Error in FUN(1:2[[1L]], ...) : unmatched item on dimension 1 e.g.: d
+> x[ii]
+Error in x[ii] : subscript out of bounds
+> x[ii[1:2,]]
+[1] 1 6
+> Xs <- Matrix(x, sparse=T)
+> class(Xs)
+[1] "dgCMatrix"
+attr(,"package")
+[1] "Matrix"
+> Xs[ii]
+Error in Xs[ii] : 
+  such indexing must be by logical or 2-column numeric matrix
+> # name-based matrix indexing works for non-sparse Matrix
+> X <- Matrix(x)
+> class(X)
+[1] "dgeMatrix"
+attr(,"package")
+[1] "Matrix"
+> X[ii[1:2,]]
+[1] 1 6
+> X[ii]
+Error in as(x, "matrix")[i] : subscript out of bounds
+> 

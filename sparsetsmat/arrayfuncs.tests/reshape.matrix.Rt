@@ -1,0 +1,284 @@
+> options(warn=1)
+> reshape.matrix(data.frame(x=factor(c(1,1,2,4),levels=1:4),y=c("a","b","a","c"),z=1:4))
+   a  b  c
+1  1  2 NA
+2  3 NA NA
+4 NA NA  4
+> x <- data.frame(x=c("A","A","B","B"), y=c("a","b","a","b"), w=1:4)
+> x
+  x y w
+1 A a 1
+2 A b 2
+3 B a 3
+4 B b 4
+> reshape.matrix(x)
+  a b
+A 1 2
+B 3 4
+> reshape.matrix(x[-3,])
+   a b
+A  1 2
+B NA 4
+> reshape.matrix(x[-3,], as.data.frame=T)
+   a b
+A  1 2
+B NA 4
+> class(reshape.matrix(x[-3,], as.data.frame=T))
+[1] "data.frame"
+> class(reshape.matrix(x[-3,]))
+[1] "matrix"
+> attributes(reshape.matrix(x[-3,]))
+$dim
+[1] 2 2
+
+$dimnames
+$dimnames[[1]]
+[1] "A" "B"
+
+$dimnames[[2]]
+[1] "a" "b"
+
+
+> xn <- paste(char(x$y), char(x$x), sep="@")
+> unpaste(xn, sep="@")
+[[1]]
+[1] "a" "b" "a" "b"
+
+[[2]]
+[1] "A" "A" "B" "B"
+
+> reshape.matrix(x$w, cols=x$y, rows=x$x)
+  a b
+A 1 2
+B 3 4
+> reshape.matrix(x$w, indices=x[1:2])
+  a b
+A 1 2
+B 3 4
+> reshape.matrix(x$w, indices=x[2:1])
+  A B
+a 1 3
+b 2 4
+> reshape.matrix(x$w, indices=unpaste(paste(x$y, x$x, sep="@"), sep="@"))
+  A B
+a 1 3
+b 2 4
+> reshape.matrix(x$w, indices=unpaste(paste(char(x$y), char(x$x), sep="@"), sep="@"))
+  A B
+a 1 3
+b 2 4
+> reshape.matrix(x$w, indices=unpaste(paste(char(x$y), char(x$x), sep="@"), sep="@")[2:1])
+  a b
+A 1 2
+B 3 4
+> reshape.matrix(x$w, indices=unpaste(xn, sep="@"))
+  A B
+a 1 3
+b 2 4
+> 
+> attributes(reshape.matrix(x[-3,], as.data.frame=T))
+$names
+[1] "a" "b"
+
+$row.names
+[1] "A" "B"
+
+$class
+[1] "data.frame"
+
+> reshape.matrix(x[-3,], warn.missing=T)
+Warning in reshape.matrix(x[-3, ], warn.missing = T) :
+  some rows were missing and were inserted, e.g. for rows: x=B, y=a; see attr(,"created.rows") for a full list
+   a b
+A  1 2
+B NA 4
+attr(,"created.rows")
+    x y  w
+B.a B a NA
+> attributes(reshape.matrix(x[-3,], presence.map=T, missing.rows=T))
+$dim
+[1] 2 2
+
+$dimnames
+$dimnames[[1]]
+[1] "A" "B"
+
+$dimnames[[2]]
+[1] "a" "b"
+
+
+$presence.map
+      a    b
+A  TRUE TRUE
+B FALSE TRUE
+
+$created.rows
+    x y  w
+B.a B a NA
+
+> attributes(reshape.matrix(x[-3,c(2,1,3)], presence.map=T, missing.rows=T))
+$dim
+[1] 2 2
+
+$dimnames
+$dimnames[[1]]
+[1] "a" "b"
+
+$dimnames[[2]]
+[1] "A" "B"
+
+
+$presence.map
+     A     B
+a TRUE FALSE
+b TRUE  TRUE
+
+$created.rows
+    y x  w
+a.B a B NA
+
+> attributes(reshape.matrix(x[-3,], presence.map=T, missing.rows=T, as.data.frame=T))
+$names
+[1] "a" "b"
+
+$row.names
+[1] "A" "B"
+
+$class
+[1] "data.frame"
+
+$presence.map
+      a    b
+A  TRUE TRUE
+B FALSE TRUE
+
+$created.rows
+    x y  w
+B.a B a NA
+
+> x <- data.frame(x=c("A","A","A","A"), y=c("a","b","c","d"), w=1:4)
+> reshape.matrix(x,2,1)
+  A
+a 1
+b 2
+c 3
+d 4
+> reshape.matrix(x)
+  a b c d
+A 1 2 3 4
+> 
+> # Test reshape.matrixing factor data
+> x <- data.frame(x=factor(c("A","A","B","B"),levels=LETTERS[1:3]), y=factor(c("a","b","a","b"),levels=letters[1:3]), w=letters[23:26])
+> reshape.matrix(x, as.data.frame=T)
+  a b
+A w x
+B y z
+> reshape.matrix(x, drop.unused=F, as.data.frame=T)
+     a    b    c
+A    w    x <NA>
+B    y    z <NA>
+C <NA> <NA> <NA>
+> class(reshape.matrix(x, drop.unused=F, as.data.frame=T))
+[1] "data.frame"
+> sapply(reshape.matrix(x, drop.unused=F, as.data.frame=T), class)
+          a           b           c 
+"character" "character" "character" 
+> class(reshape.matrix(x, drop.unused=F))
+[1] "matrix"
+> mode(reshape.matrix(x, drop.unused=F))
+[1] "character"
+> # Test reshape.matrixing timeDate data
+> x <- data.frame(x=factor(c("A","A","B","B"),levels=LETTERS[1:3]), y=factor(c("a","b","a","b"),levels=letters[1:3]), w=seq(as.Date("2001/01/01"), by=1, len=4))
+> x
+  x y          w
+1 A a 2001-01-01
+2 A b 2001-01-02
+3 B a 2001-01-03
+4 B b 2001-01-04
+> reshape.matrix(x, drop.unused=F, as.data.frame=T)
+           a          b    c
+A 2001-01-01 2001-01-02 <NA>
+B 2001-01-03 2001-01-04 <NA>
+C       <NA>       <NA> <NA>
+> reshape.matrix(x[-3,], drop.unused=F, as.data.frame=T)
+           a          b    c
+A 2001-01-01 2001-01-02 <NA>
+B       <NA> 2001-01-04 <NA>
+C       <NA>       <NA> <NA>
+> reshape.matrix(x[c(-3,-2),], drop.unused=F, as.data.frame=T)
+           a          b    c
+A 2001-01-01       <NA> <NA>
+B       <NA> 2001-01-04 <NA>
+C       <NA>       <NA> <NA>
+> reshape.matrix(x[c(-3,-2),], as.data.frame=T)
+           a          b
+A 2001-01-01       <NA>
+B       <NA> 2001-01-04
+> # Test behavior with NA's
+> # No NA's in this one:
+> reshape.matrix(data.frame(r=c("r1","r1","r1","r2","r2","r2"),c=c("X","NA","Y","X","NA","Y"),v=1:6,stringsAsFactors=F))
+   NA X Y
+r1  2 1 3
+r2  5 4 6
+> reshape.matrix(data.frame(r=c("r1","r1","r1","r2","r2","r2"),c=c("X","NA","Y","X","NA","Y"),v=1:6,stringsAsFactors=F), sort.cols=FALSE)
+   X NA Y
+r1 1  2 3
+r2 4  5 6
+> # Have some NA's in the column names.
+> # Behavior is different to (better than) S-PLUS: "NA" is a fine value for a string
+> reshape.matrix(data.frame(r=c("r2","r1","r1","r1","r2","r2"),c=c("X","NA","Y","X","NA","Y"),v=1:6))
+   NA X Y
+r1  2 4 3
+r2  5 1 6
+> reshape.matrix(data.frame(r=c("r2","r1","r1","r1","r2","r2"),c=c("X","NA","Y","X","NA","Y"),v=1:6), na.warn=F)
+   NA X Y
+r1  2 4 3
+r2  5 1 6
+> reshape.matrix(data.frame(r=factor(c("r1","r1","r1","r2","r2","r2")),c=factor(c("X","NA","Y","X","NA","Y"),exclude=NULL),v=1:6))
+   NA X Y
+r1  2 1 3
+r2  5 4 6
+> 
+> reshape.matrix(data.frame(r=c("r2","r1","r1","r1","r2","r2"),c=c("X",NA,"Y","X",NA,"Y"),v=1:6))
+Warning in reshape.matrix(data.frame(r = c("r2", "r1", "r1", "r1", "r2",  :
+  have 2 NA values in col identifiers
+   X Y
+r1 4 3
+r2 1 6
+> reshape.matrix(data.frame(r=c("r2","r1","r1","r1","r2","r2"),c=c("X",NA,"Y","X",NA,"Y"),v=1:6), na.warn=F)
+   X Y
+r1 4 3
+r2 1 6
+> reshape.matrix(data.frame(r=factor(c("r1","r1","r1","r2","r2","r2")),c=factor(c("X",NA,"Y","X",NA,"Y"),exclude=NULL),v=1:6))
+   X Y <NA>
+r1 1 3    2
+r2 4 6    5
+> 
+> # Test behavior with need.dimnames
+> x <- data.frame(x=c("A","A","B","B"), y=c("a","b","a","b"), w=1:4)
+> reshape.matrix(x[-3,], need.dimnames=list(c("B","C"),character(0)))
+   a  b
+A  1  2
+B NA  4
+C NA NA
+> reshape.matrix(x[-3,], need.dimnames=list(c("C","B"),character(0)))
+   a  b
+C NA NA
+A  1  2
+B NA  4
+> reshape.matrix(x[-3,], need.dimnames=list(c("C","B"),c("a","c","b")))
+   a  c  b
+C NA NA NA
+A  1 NA  2
+B NA NA  4
+> reshape.matrix(x[-3,], need.dimnames=list(c("C","B"),c("a","b","c")))
+   a  b  c
+C NA NA NA
+A  1  2 NA
+B NA  4 NA
+> reshape.matrix(x[-3,], need.dimnames=list(c("B","A","C"),c("c","a","b")))
+   c  a  b
+B NA NA  4
+A NA  1  2
+C NA NA NA
+> 
