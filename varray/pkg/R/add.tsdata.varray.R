@@ -38,6 +38,8 @@
 #'
 #' @param naidxok
 #' Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.
+#' @param change.mode.ok
+#' Logical.  If TRUE, the mode of new data does not need to match existing data (default FALSE).
 #' @param keep.ordered
 #' Logical.  Specifies which dimensions should be kept ordered.  Can be a
 #' single element or a vector with length equal to the number of
@@ -96,7 +98,7 @@ add.tsdata.default <- function(x, ...) {
 add.tsdata.varray <- function(x, newdata, comp.name=va$comp.name, dateblock='%Y', format=va$format,
                               # dates.by='bizdays', holidays='NYSEC', vmode='single',
                               along=va$along, dimorder=va$dimorder,
-                              env.name=NULL, envir=NULL, clear.dim=NULL, naidxok=va$naidxok,
+                              env.name=NULL, envir=NULL, clear.dim=NULL, naidxok=va$naidxok, change.mode.ok=FALSE,
                               need.dimnames=list(NULL, NULL),
                               keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE,
                               fill=NA, ...) {
@@ -139,6 +141,12 @@ add.tsdata.varray <- function(x, newdata, comp.name=va$comp.name, dateblock='%Y'
             va <- get(va.name, envir=envir, inherits=FALSE)
             if (!inherits(va, 'varray'))
                 stop('object ', va.name, ' is not a varray')
+            if (!change.mode.ok) {
+                if (mode(newdata) != mode.varray(va) && all(is.na(newdata)))
+                    storage.mode(newdata) <- vstorage.mode(va)
+                if (mode(newdata) != mode.varray(va))
+                    stop('not changing mode: mode(existing.varray)=', mode.varray(va), ' and mode(newdata)=', mode(newdata))
+            }
         } else {
             va <- NULL
             newObj <- TRUE

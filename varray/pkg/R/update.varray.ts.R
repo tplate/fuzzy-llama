@@ -35,6 +35,8 @@
 #' not yet fully tested.
 #' @param naidxok
 #' Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.
+#' @param change.mode.ok
+#' Logical.  If TRUE, the mode of new data does not need to match existing data (default FALSE).
 #' @param keep.ordered
 #' Logical.  Specifies which dimensions should be kept ordered.  Can be a
 #' single element or a vector with length equal to the number of
@@ -57,7 +59,7 @@
 update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y', format=va$format,
                              # dates.by='bizdays', holidays='NYSEC', vmode='single',
                              along=va$along, dimorder=va$dimorder,
-                             env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
+                             env.name=va$env.name, envir=NULL, naidxok=va$naidxok, change.mode.ok=FALSE,
                              keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, fill=NA, ...) {
     # have ... args to satisfy the generic update()
     if (length(list(...)))
@@ -87,6 +89,12 @@ update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y
         stop('object must be supplied as character data naming the virtual array')
     if (exists(va.name)) {
         va <- get(va.name)
+        if (!change.mode.ok) {
+            if (mode(data) != mode.varray(va) && all(is.na(data)))
+                storage.mode(data) <- vstorage.mode(va)
+            if (mode(data) != mode.varray(va))
+                stop('not changing mode: mode(existing.varray)=', mode.varray(va), ' and mode(newdata)=', mode(data))
+        }
     } else {
         va <- NULL
     }
