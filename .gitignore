@@ -23,3 +23,5 @@ tmp*
 *.Rcheck
 varray.tests
 sparsetsmat.tests
+
+pdfmark/pdfmark_1.0-0.tar.gz
