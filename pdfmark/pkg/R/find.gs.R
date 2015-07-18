@@ -1,4 +1,7 @@
 #' Find the ghostscript executable
+#'
+#' Internal utility function to find the ghostscript executable.
+#'
 #' @param mustexist stop with an error if the executable does not exist
 #' @param gsexe full path or program name (env vars not used if this is supplied)
 #' @return the full pathname of the ghostscript executable
@@ -8,8 +11,9 @@
 #'   likely places.  R_GSCMD or GSC can be a full path or just
 #'   a program name, in the latter case, it is looked for on the system PATH.
 #'
+#'
 find.gs <- function(mustexist=TRUE, gsexe=NULL) {
-    if (!is.null(gsexe) && !nzchar(gsexe))
+    if (is.null(gsexe) || !nzchar(gsexe))
         gsexe <- Sys.getenv("R_GSCMD")
     if (.Platform$OS.type == "windows" && !nzchar(gsexe))
         gsexe <- Sys.getenv("GSC")
@@ -43,6 +47,8 @@ find.gs <- function(mustexist=TRUE, gsexe=NULL) {
     if (!is.null(gsexe) && nzchar(gsexe)) {
         if (.Platform$OS.type == "windows" && length(grep(" ", gsexe, fixed = TRUE)))
             gsexe <- shortPathName(gsexe)
+    } else if (mustexist) {
+        stop('GS executable not found: "', gsexe, '"')
     }
     return(gsexe)
 }

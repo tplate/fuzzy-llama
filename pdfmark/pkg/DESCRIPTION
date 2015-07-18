@@ -1,9 +1,13 @@
 Package: pdfmark
 Type: Package
 Title: Add bookmarks to a PDF file using ghostscript
-Version: 1.0-0
+Version: 1.0-1
 Date: 2014-02-25
 Author: Tony Plate
 Maintainer: Tony Plate <tplate@acm.org>
-Description: Add bookmarks to a PDF file using ghostscript
-License: GPL
+Description: Add bookmarks to a PDF file.
+    Requires the Ghostscript program to be installed and executable.
+    Works on windows and mac systems.  Should work on unix systems too.
+License: MIT + file LICENSE
+Copyright: Tony Plate
+Roxygen: list(wrap = FALSE)

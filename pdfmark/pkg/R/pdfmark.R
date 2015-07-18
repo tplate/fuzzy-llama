@@ -1,21 +1,30 @@
-#' Generate a PDF bookmark, optionally writing a page number on the current device
+#' Generate a single PDF bookmark, optionally writing a page number on the current device
+#'
+#' This function records data for one PDF bookbark.  It can
+#' also keep track of the current page number, and can
+#' optionally write a page number on the current plotting
+#' device.  The function \code{\link{pdf.pdfmark}} adds bookmarks to an existing PDF file.
+#'
 #' @param title text of the bookmark
 #' @param marks a dataframe of pdf bookmarks (a return value from this function)
-#' @param page the page number to use, both in the bookmark and to write on the device
-#' @param level top level is 1, bottom level is 4
+#' @param page the page number to use, both in the bookmark and to write on the device.  Defaults to incrementing the page number associated with the \code{marks} object.
+#' @param inc the automatic increment to the page number.  Supply as zero when adding another bookmark for the same page.
+#' @param level nesting level for the bookmark; top level is 1, bottom level is 4
 #' @param open when the PDF file is viewed, are the sub-levels initially shown open or closed?
-#' @param plot.it should the page number be written on the current device
-#' @param pos controls writing the page number to the current device
-#' @param line controls writing the page number to the current device
-#' @param adj controls writing the page number to the current device
-#' @param outer controls writing the page number to the current device
-#' @param format controls writing the page number to the current device
-#' @param mtext.args controls writing the page number to the current device
-#' @return A dataframe of pdf bookmarks, suitable for passing to \code{\link{pdf.pdfmark}}
-#' @details The controls for writing the page number to the current device are stored in the return value and reused for the next call to pdfmark()
+#' @param plot.it should the page number be written on the plotting device?
+#' @param pos controls writing the page number to the plotting device, one of 'bottom', 'bottomleft', 'bottomright', 'top', 'topleft', 'topright'
+#' @param line position of the page number on the plotting device
+#' @param adj adjustment for the position of the page number to the plotting device.  A number between 0 (left adjusted) and 1 (right adjusted)
+#' @param outer (logical) should the page number be written on the plotting device in the outer margins? Default is TRUE.
+#' @param format controls writing the page number to the plotting device; formatted using \code{sprintf()}. Default is \code{'Page \%s'}.
+#' @param mtext.args other arguments to \code{mtext()} to use when writing the page number to the plotting device
+#' @return A dataframe of pdf bookmarks, suitable for passing to \code{\link{pdf.pdfmark}}.  This function can also have the side effect of writing a page number on the plotting device.
+#' @seealso \code{\link{pdf.pdfmark}} for adding bookmarks to a PDF file
+#' @details The controls for writing the page number to the plotting device are stored in the return value and reused for the next call to pdfmark()
 pdfmark <- function(title,
                     marks=list(),
-                    page=max(marks$page, 0)+1,
+                    page=max(marks$page, 0)+inc,
+                    inc=1,
                     level=1,
                     open=level <= 2,
                     plot.it=FALSE,

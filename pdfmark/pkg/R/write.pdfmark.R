@@ -1,4 +1,7 @@
 #' Write an R structure of pdf bookmarks to a pdfmark file
+#'
+#' Internal utility function to create an intermediate file of PDF bookmarks
+#'
 #' @param marks a dataframe of pdf bookmarks (see \code{\link{pdfmark}})
 #' @param file a filename or connection to write to
 #' @param pageformat if non-empty, this character string format is used for appending page numbers to the titles in the table of contents, e.g., ' [\%s]'.
