@@ -122,7 +122,8 @@ Rcpp::IntegerVector stsm_xt_mii(
 		   const Rcpp::IntegerVector id_noc,
 		   const int backfill) {
     Rcpp::IntegerVector val_idx(i_idx.size());
-    int i, j, s, e, k, d;
+    int i, j, s, e, k;
+    // int d;
     i = 0; // index into i.idx and j.idx
     while (i < i_idx.size()) {
         j = j_idx[i] - 1;
@@ -176,7 +177,8 @@ Rcpp::IntegerVector stsm_xt_mid(
 		   const int backfill) {
     Rcpp::IntegerVector val_idx(i_idx.size());
     int i, j;
-    double k, e, s, d;
+    double k, e, s;
+    // int d;
     i = 0; // index into i.idx and j.idx
     while (i < i_idx.size()) {
         j = j_idx[i] - 1;
