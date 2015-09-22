@@ -36,7 +36,7 @@ Rcpp::IntegerVector stsm_xt_sqi(
 	s = id_idx[j_idx[j] - 1] - 1;
 	e = s + id_noc[j_idx[j] - 1];
 	// data for j_idx[j] lies in [s,e) indices of x_date
-	if (s >=0 && e <= x_date.size() & s < e) {
+	if (s >=0 && e <= x_date.size() && s < e) {
 	    ii = j * i_idx.size();
 	    for (i=0; i < i_idx.size(); i++) {
 		d = i_idx[i];
@@ -136,7 +136,7 @@ Rcpp::IntegerVector stsm_xt_mii(
         } else {
             k = s = id_idx[j] - 1;
             e = s + id_noc[j] - 1;
-            d = x_dates[k];
+            // d = x_dates[k]; not used
             while (i < i_idx.size() && j_idx[i] == j+1) {
 		// increase k until x_dates[k] is the largest still
 		// smaller than i.idx[i]
@@ -190,7 +190,7 @@ Rcpp::IntegerVector stsm_xt_mid(
         } else {
             k = s = id_idx[j] - 1;
             e = s + id_noc[j] - 1;
-            d = x_dates[k];
+            // d = x_dates[k]; not used
             while (i < i_idx.size() && j_idx[i] == j+1) {
 		// increase k until x_dates[k] is the largest still
 		// smaller than i.idx[i]
