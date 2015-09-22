@@ -1,4 +1,5 @@
 > options(error=function(x) NULL)
+> options(sparsetsmat.verbose=TRUE)
 > set.seed(1)
 > m7.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 35), sample(7*5, 11), c(letters, LETTERS)[1:11]), nrow=7, ncol=5, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=7, by='3 days')), paste('V', 1:5, sep=''))))
 > m7.tsm <- sparsetsmat(m7.mat)
@@ -55,7 +56,7 @@ Nothing to change
 2001-01-19 "e" "b" "c" "g" "h"
 > # test for a simple change that affects the next row
 > as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-10', j='V2'), value='X', verbose=T))
-Adding 1 new rows
+Adding 1 new rows in data frame version
            V1  V2  V3  V4  V5 
 2001-01-01 NA  NA  NA  NA  NA 
 2001-01-04 "j" NA  NA  NA  "d"
@@ -67,7 +68,7 @@ Adding 1 new rows
 > 
 > # test for where one change turns a later non-change into a change
 > as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i=c('2001-01-10','2001-01-13'), j='V2'), value=c('X','a'), verbose=T))
-Adding 2 new rows
+Adding 2 new rows in data frame version
            V1  V2  V3  V4  V5 
 2001-01-01 NA  NA  NA  NA  NA 
 2001-01-04 "j" NA  NA  NA  "d"
@@ -78,7 +79,7 @@ Adding 2 new rows
 2001-01-19 "e" "b" "c" "g" "h"
 > # test for out of time-order rows in the newdata arg
 > as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i=c('2001-01-13','2001-01-10'), j='V2'), value=c('X','a'), verbose=T))
-Adding 2 new rows
+Adding 2 new rows in data frame version
            V1  V2  V3  V4  V5 
 2001-01-01 NA  NA  NA  NA  NA 
 2001-01-04 "j" NA  NA  NA  "d"
@@ -87,7 +88,7 @@ Adding 2 new rows
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
 > as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i=c('2001-01-13','2001-01-10'), j='V2'), value=c('a','X'), verbose=T))
-Adding 2 new rows
+Adding 2 new rows in data frame version
            V1  V2  V3  V4  V5 
 2001-01-01 NA  NA  NA  NA  NA 
 2001-01-04 "j" NA  NA  NA  "d"
@@ -98,7 +99,7 @@ Adding 2 new rows
 2001-01-19 "e" "b" "c" "g" "h"
 > # test for just have a single date beyond the range of the existing
 > as.matrix(`[<-.sparsetsmat`(m7.tsm, data.frame(i='2001-01-20', j='V2'), value='X', verbose=T))
-Adding 1 new rows
+Adding 1 new rows in data frame version
            V1  V2  V3  V4  V5 
 2001-01-01 NA  NA  NA  NA  NA 
 2001-01-04 "j" NA  NA  NA  "d"

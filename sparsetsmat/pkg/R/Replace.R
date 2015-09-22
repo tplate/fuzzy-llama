@@ -1,4 +1,4 @@
-'[<-.sparsetsmat' <- function(x, i, j, ..., verbose=TRUE, value) {
+'[<-.sparsetsmat' <- function(x, i, j, ..., verbose=getOption('sparsetsmat.verbose', FALSE), value) {
     # verbose <- FALSE
     # Convert square i,j indexing to matrix indexing.
     # Retrieve the existing values and look for differences.
@@ -47,11 +47,11 @@
     }
     if (nrow(ddn)==0) {
         # no new rows
-        if (verbose) cat('Adding no new rows\n')
+        if (verbose) cat('Adding no new rows in data frame version\n')
         return(x)
     } else {
         # have new rows
-        if (verbose) cat('Adding', nrow(ddn), 'new rows\n')
+        if (verbose) cat('Adding', nrow(ddn), 'new rows in data frame version\n')
         return(add.tsdata(x, ddn[,c('i','j','new')]))
     }
 }

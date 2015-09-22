@@ -3,6 +3,7 @@
 > # Confirm that add.tsdata works with both halves to create whole in all combinations
 > # Try interleaved 'halves'
 > options(error=function(x) NULL)
+> options(sparsetsmat.verbose=TRUE)
 > set.seed(1)
 > m3.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 23*17), sample(23*17, 52), c(letters, LETTERS)), nrow=23, ncol=17, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=23, by='days')), paste('V', 1:17, sep=''))))
 > m3.tsm <- sparsetsmat(m3.mat)
@@ -153,9 +154,9 @@
 > m8.tsm <- m7.tsm
 > m8.tsm['2001-01-19','V1'] <- NA
 Changing 1 existing entries
-Adding no new rows
+Adding no new rows in data frame version
 > m8.tsm['2001-01-19','V2'] <- 'B'
-Adding 1 new rows
+Adding 1 new rows in data frame version
 > as.matrix(m8.tsm)
            V1  V2  V3  V4  V5 
 2001-01-01 NA  NA  NA  NA  NA 
@@ -189,4 +190,20 @@ Adding 1 new rows
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "e" NA  "d" NA  NA 
 2001-01-19 NA  "B" "d" "g" NA 
+> 
+> 
+> m9.tsm <- m7.tsm
+> m9.tsm['2001-01-19','V1'] <- NA
+Changing 1 existing entries
+Adding no new rows in data frame version
+> m9.tsm['2001-01-13','V2'] <- NA
+Adding 1 new rows in data frame version
+> as.matrix(add.tsdata(m9.tsm, rbind('2001-01-13'=c(V2='z'))))
+           V1  V2  V3  V4  V5 
+2001-01-01 NA  NA  NA  NA  NA 
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "z" "c" NA  "h"
+2001-01-16 "k" "b" "c" "f" "h"
+2001-01-19 NA  "b" "c" "g" "h"
 > 
