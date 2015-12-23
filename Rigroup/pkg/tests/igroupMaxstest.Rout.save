@@ -1,0 +1,37 @@
+
+R : Copyright 2006, The R Foundation for Statistical Computing
+Version 2.3.1 (2006-06-01)
+ISBN 3-900051-07-0
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(Rigroup)
+> 
+> x <- rnorm(5000)
+> i <- rep(1:2500,2)
+> y <- runif(5000)
+> is.na(x[y > 0.8]) <- TRUE
+> 
+> maxa = unlist(lapply(split(x,i),max,na.rm=T))
+There were 50 or more warnings (use warnings() to see the first 50)
+> names(maxa)<-NULL
+> maxb <- igroupMaxs(x,i,na.rm=T)
+> all.equal(maxa, maxb)
+[1] TRUE
+> 
+> maxa = unlist(lapply(split(x,i),max,na.rm=F))
+> names(maxa)<-NULL
+> maxb <- igroupMaxs(x,i,na.rm=F)
+> all.equal(maxa, maxb)
+[1] TRUE
+> 

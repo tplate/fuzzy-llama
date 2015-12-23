@@ -1,0 +1,15 @@
+Package: library.local
+Type: Package
+Title: Make a local copy of a package and load it.
+Version: 1.6
+Date: 2013-04-21
+Author: Tony Plate <tplate@acm.org>
+Maintainer: Tony Plate <tplate@acm.org>
+Depends: tools
+Description: Has a function library.local() that makes
+  a local copy of a package and loads
+  the copy.  Loading a package this way makes it
+  possible to update packages in the common library
+  while R sessions have a package attached.  Tries
+  to be smart about using existing copies of the package.
+License: GPL

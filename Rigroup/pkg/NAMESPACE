@@ -1,0 +1,11 @@
+useDynLib(Rigroup)
+
+export("igroupAlls")
+export("igroupAnys")
+export("igroupCounts")
+export("igroupMaxs")
+export("igroupMeans")
+export("igroupMins")
+export("igroupProds")
+export("igroupRanges")
+export("igroupSums")
