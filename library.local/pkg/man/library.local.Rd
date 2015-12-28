@@ -15,10 +15,10 @@ Make a local copy of a package and load it.
 \usage{
 library.local(package, character.only=FALSE, ..., lib.loc = NULL,
               binary.only=getOption('library.local.binary.only', TRUE),
-              compare.method = c('cached.info', 'md5sum'), local.deps = TRUE,
+              compare.method = c('description.built', 'cached.info', 'md5sum'), local.deps = TRUE,
               local.lib.locs = c(Sys.getenv("TMPDIR"), Sys.getenv("TMP"), Sys.getenv("TEMP")),
               pkg.subdirs = c("R", "libs", "data"),
-              verbose = FALSE, dry.run = FALSE)
+              verbose = getOption('library.local.verbose', FALSE), dry.run = FALSE)
 require.local(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
               keep.source = getOption("keep.source.pkgs"), character.only = FALSE,
               binary.only=getOption('library.local.binary.only', TRUE),

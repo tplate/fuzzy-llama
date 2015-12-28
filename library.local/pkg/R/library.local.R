@@ -4,7 +4,7 @@ library.local <- function(package, character.only=FALSE,
                           compare.method=c('description.built', 'cached.info', 'md5sum'), local.deps=TRUE,
                           local.lib.locs=c(Sys.getenv('TMPDIR'), Sys.getenv('TMP'), Sys.getenv('TEMP')),
                           pkg.subdirs=c('R','libs','data'),
-                          verbose=FALSE, dry.run=FALSE) {
+                          verbose=getOption('library.local.verbose', FALSE), dry.run=FALSE) {
     if (is.logical(verbose) && verbose)
         verbose <- 3
     non.null <- function(x, y) if (is.null(x)) y else x
@@ -30,7 +30,21 @@ library.local <- function(package, character.only=FALSE,
              if (!character.only && is.name(package.orig))
              paste(" (if '", as.character(package.orig), "' is a var, do library.local(",
                    as.character(package.orig), ', character.only=TRUE, ...))', sep=''))
-    priority <- utils:::packageDescription(package, fields='Priority', lib.loc=lib.loc)
+    ## Load dependencies before any initial attempt at loading the package without copying.
+    ## (Because an initial attempt can load dependencies using just library(), and
+    ## they might contain binaries).
+    if (local.deps) {
+        deps <- setdiff(all.pkg.depends(package, lib.loc=lib.loc), c(package, .packages()))
+        if (length(deps) && verbose > 2)
+            cat('library.local: for', package, 'need deps:', paste(deps, collapse=', '), '\n')
+        for (dep in deps) {
+            library.local(package=dep, character.only=TRUE, ..., local.deps=TRUE, lib.loc=lib.loc,
+                          compare.method=compare.method, binary.only=binary.only,
+                          local.lib.locs=local.lib.locs, pkg.subdirs=pkg.subdirs, verbose=verbose, dry.run=dry.run)
+        }
+    }
+
+    priority <- utils::packageDescription(package, fields='Priority', lib.loc=lib.loc)
     if (is.na(priority))
         priority <- 'NA'
     if (verbose > 2)
@@ -49,15 +63,6 @@ library.local <- function(package, character.only=FALSE,
         }
         # codetools complains that '... may be used in an incorrect context' if ... is not the 1st actual arg to library()?
         return(library(..., package=package, character.only=TRUE, lib.loc=lib.loc))
-    }
-    if (local.deps) {
-        deps <- setdiff(all.pkg.depends(package, lib.loc=lib.loc), c(package, .packages()))
-        if (length(deps) && verbose > 2)
-            cat('library.local: for', package, 'need deps:', paste(deps, collapse=', '), '\n')
-        for (dep in deps) {
-            library.local(package=dep, character.only=TRUE, ..., local.deps=FALSE, lib.loc=lib.loc, compare.method=compare.method,
-                          local.lib.locs=local.lib.locs, pkg.subdirs=pkg.subdirs, verbose=verbose, dry.run=dry.run)
-        }
     }
     # Check again whether the desired package is loaded.
     # Could be strange/unusual circumstances where it got loaded as
