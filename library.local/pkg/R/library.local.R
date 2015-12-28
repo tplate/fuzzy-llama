@@ -313,7 +313,8 @@ all.pkg.depends <- function(pkgs, lib.loc=NULL) {
 pkg.depends <- function(pkg, lib.loc=NULL) {
     pfile <- system.file("Meta", "package.rds", package=pkg, lib.loc=lib.loc)
     pkgInfo <- readRDS(pfile)
-    as.character(sapply(pkgInfo$Depends, '[[', 'name'))
+    return(unique(as.character(c(sapply(pkgInfo$Depends, '[[', 'name'),
+                                 sapply(pkgInfo$Imports, '[[', 'name')))))
 }
 
 library.local.clean <- function(older.than=NULL,
