@@ -4,6 +4,7 @@ library.local <- function(package, character.only=FALSE,
                           compare.method=c('description.built', 'cached.info', 'md5sum'), local.deps=TRUE,
                           local.lib.locs=c(Sys.getenv('TMPDIR'), Sys.getenv('TMP'), Sys.getenv('TEMP')),
                           pkg.subdirs=c('R','libs','data'),
+                          include.imports=getOption('library.local.include.imports', FALSE),
                           verbose=getOption('library.local.verbose', FALSE), dry.run=FALSE) {
     if (is.logical(verbose) && verbose)
         verbose <- 3
@@ -34,12 +35,12 @@ library.local <- function(package, character.only=FALSE,
     ## (Because an initial attempt can load dependencies using just library(), and
     ## they might contain binaries).
     if (local.deps) {
-        deps <- setdiff(all.pkg.depends(package, lib.loc=lib.loc), c(package, .packages()))
+        deps <- setdiff(all.pkg.depends(package, lib.loc=lib.loc, include.imports=include.imports), c(package, .packages()))
         if (length(deps) && verbose > 2)
             cat('library.local: for', package, 'need deps:', paste(deps, collapse=', '), '\n')
         for (dep in deps) {
             library.local(package=dep, character.only=TRUE, ..., local.deps=TRUE, lib.loc=lib.loc,
-                          compare.method=compare.method, binary.only=binary.only,
+                          compare.method=compare.method, binary.only=binary.only, include.imports=include.imports,
                           local.lib.locs=local.lib.locs, pkg.subdirs=pkg.subdirs, verbose=verbose, dry.run=dry.run)
         }
     }
@@ -281,11 +282,11 @@ path.package.local <- function(package, original=TRUE) {
     }
 }
 
-all.pkg.depends <- function(pkgs, lib.loc=NULL) {
+all.pkg.depends <- function(pkgs, lib.loc=NULL, include.imports=FALSE) {
     all.pkgs <- character(0)
     deplist <- list()
     while (length(pkgs)) {
-        deps <- pkg.depends(pkgs[1], lib.loc=lib.loc)
+        deps <- pkg.depends(pkgs[1], lib.loc=lib.loc, include.imports=include.imports)
         all.pkgs <- c(all.pkgs, pkgs[1])
         if (length(deps))
             deplist[[pkgs[1]]] <- deps
@@ -310,11 +311,15 @@ all.pkg.depends <- function(pkgs, lib.loc=NULL) {
     all.pkgs
 }
 
-pkg.depends <- function(pkg, lib.loc=NULL) {
+pkg.depends <- function(pkg, lib.loc=NULL, include.imports=FALSE) {
     pfile <- system.file("Meta", "package.rds", package=pkg, lib.loc=lib.loc)
+    if (length(pfile)==0 || pfile=='')
+        return(character(0))
     pkgInfo <- readRDS(pfile)
-    return(unique(as.character(c(sapply(pkgInfo$Depends, '[[', 'name'),
-                                 sapply(pkgInfo$Imports, '[[', 'name')))))
+    deps <- as.character(sapply(pkgInfo$Depends, '[[', 'name'))
+    if (include.imports)
+        deps <- unique(deps, as.character(sapply(pkgInfo$Imports, '[[', 'name')))
+    return(deps)
 }
 
 library.local.clean <- function(older.than=NULL,

@@ -18,7 +18,9 @@ library.local(package, character.only=FALSE, ..., lib.loc = NULL,
               compare.method = c('description.built', 'cached.info', 'md5sum'), local.deps = TRUE,
               local.lib.locs = c(Sys.getenv("TMPDIR"), Sys.getenv("TMP"), Sys.getenv("TEMP")),
               pkg.subdirs = c("R", "libs", "data"),
-              verbose = getOption('library.local.verbose', FALSE), dry.run = FALSE)
+              include.imports = getOption('library.local.include.imports', FALSE),
+              verbose = getOption('library.local.verbose', FALSE),
+              dry.run = FALSE)
 require.local(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
               keep.source = getOption("keep.source.pkgs"), character.only = FALSE,
               binary.only=getOption('library.local.binary.only', TRUE),
@@ -39,6 +41,9 @@ require.local(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
     library, a new copy will be created.}
   \item{local.deps}{ if \code{TRUE}, work out dependencies, and load
     them using \code{library.local()} too}
+  \item{include.imports}{ Should 'Imports' dependencies also be loaded?
+  If \code{TRUE}, can result in packages being loaded that would
+  otherwise only be loaded on demand.}
   \item{local.lib.locs}{ directory where to make local copies}
   \item{pkg.subdirs}{ which subdirectories of a package to check when
     seeing if an existing copy of a package is up-to-date}
