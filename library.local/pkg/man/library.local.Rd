@@ -41,9 +41,12 @@ require.local(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
     library, a new copy will be created.}
   \item{local.deps}{ if \code{TRUE}, work out dependencies, and load
     them using \code{library.local()} too}
-  \item{include.imports}{ Should 'Imports' dependencies also be loaded?
+  \item{include.imports}{ Should 'Imports' dependencies also be loaded
+    together with 'Depends' dependencies when \code{local.deps==TRUE}?
   If \code{TRUE}, can result in packages being loaded that would
-  otherwise only be loaded on demand.}
+  otherwise only be loaded on demand.  Only has an effect when
+  \code{local.deps==TRUE}.  If \code{FALSE}, can result in loading of packages
+  from their native location, bypassing the intention of \code{library.local}. }
   \item{local.lib.locs}{ directory where to make local copies}
   \item{pkg.subdirs}{ which subdirectories of a package to check when
     seeing if an existing copy of a package is up-to-date}
