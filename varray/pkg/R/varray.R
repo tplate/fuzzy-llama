@@ -60,6 +60,11 @@
 #'
 #' @param x a varray object
 #'
+#' @param name optional, the name of the actual varray
+#'     object.  If supplied, this can be used after
+#'     consistency checks have failed to try to refresh the
+#'     container and content objects.
+#'
 #' @details
 #' Component arrays are stored by reference (by name.)  At the time of subset
 #' extraction the component arrays will be retrieved.  This creates the
@@ -112,7 +117,7 @@
 #' y <- varray(cbind(A=c(a=1)), cbind(B=c(b=NA)))
 #' as.matrix(y, fill=0)
 
-varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL, keep.ordered=TRUE, umode=NULL, fill=NULL) {
+varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL, keep.ordered=TRUE, umode=NULL, fill=NULL, name=NULL) {
     # Can call like this:
     #    varray(a, b, c)
     # or varray('a', 'b', 'c')
@@ -248,9 +253,10 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
     # fill:         optional; a value to replace missing or NA values with
     # creator.args: args to supply to creator, e.g., for 'ff' list(vmode='single')
     # expander.args:
+    # name:         (optional) name of the top level object
     res <- structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
                    dimorder=dimorder, naidxok=naidxok, env.name=env.name, comp.name=comp.name,
-                   keep.ordered=keep.ordered, umode=umode),
+                   keep.ordered=keep.ordered, umode=umode, name=name),
               class='varray')
     if (!is.null(fill) && !is.na(fill))
         res$fill <- fill
@@ -274,7 +280,8 @@ rebuild.varray <- function(x) {
         sample <- asub(z, rep(list(1), length(dim(z))))
         comp$dim <- dim(z)
         comp$dimnames <- dimnames(z)
-        comp$sample <- comp$sample
+        comp$sample <- sample
+        comp$comp.ver <- attr(z, 'comp.ver')
         return(comp)
     })
     for (i in seq(along=info)[-1]) {
@@ -328,8 +335,8 @@ fixGlobalEnvName <- function(name) {
 varray.methods <- function() NULL
 
 #' @describeIn varray.methods Convert a varray to an ordinary array
-#' @method as.array varray
-as.array.varray <- function(x, ..., fill=x$fill) {
+#' @method as.array noretry.varray
+as.array.noretry.varray <- function(x, ..., fill=x$fill) {
     if (is.null(fill)) fill <- NA
     rdimorder <- order(x$dimorder)
     alongd <- rdimorder[x$along]
@@ -344,6 +351,8 @@ as.array.varray <- function(x, ..., fill=x$fill) {
                        z <- get(comp$name, envir=as.environment(comp$env.name))
                    # don't replace explicit NA's with fill
                    # if (!is.na(fill) && any(i <- is.na(z))) z[i] <- fill
+                   if (!is.null(attr(z, 'comp.ver')) && !identical(attr(z, 'comp.ver'), comp$comp.ver))
+                       warning('mismatch on comp.ver')
                    conform(z, x$dimnames[rdimorder], along=seq(len=length(x$dim))[-alongd], fill=fill)
                }))
     if (!all(x$dimorder == seq(length(x$dim))))
@@ -351,6 +360,133 @@ as.array.varray <- function(x, ..., fill=x$fill) {
     if (!isTRUE(all.equal(x$dimnames[[x$along]], dimnames(y)[[x$along]])))
         y <- conform(y, x$dimnames, along=x$along, fill=fill)
     y
+}
+
+checkCompIntegrity <- function(comp, obj, x.name, nTries=NA, succeedOnTry=NA) {
+    syncErrMsg <- NULL
+    if (!is.null(attr(obj, 'comp.ver')) && !identical(attr(obj, 'comp.ver'), comp$comp.ver)) {
+        syncErrMsg <- paste0('varray ', non.null(x.name, '<no name>'), ' component ',
+                             non.null(comp$name, '<unknown name>'), ' has comp.ver=',
+                             attr(obj, 'comp.ver'), '; expecting ', comp$comp.ver)
+    } else if (length(dim(obj)) != length(comp$dim)) {
+        syncErrMsg <- paste0('varray ', non.null(x.name, '<no name>'), ' component ',
+                             non.null(comp$name, '<unknown name>'), ' has length(dim)=',
+                             length(dim(obj)), '; expecting ', length(comp$dim))
+    } else if (any(dim(obj) != comp$dim)) {
+        syncErrMsg <- paste0('varray ', non.null(x.name, '<no name>'), ' component ',
+                             non.null(comp$name, '<unknown name>'), ' has dim=',
+                             paste(dim(obj), collapse='x'), '; expecting ', paste(comp$dim, collapse='x'))
+    } else if (!all(mapply(dimnames(obj), comp$dimnames, FUN=function(x, y) all(x==y)))) {
+        syncErrMsg <- paste0('varray ', non.null(x.name, '<no name>'), ' component ',
+                             non.null(comp$name, '<unknown name>'), ' has some mismatching dimnems')
+    } else if (!is.na(succeedOnTry) && nTries < succeedOnTry) {
+        syncErrMsg <- paste0('Test retry for component ', non.null(comp$name, '<unknown name>'),
+                             ' of varray ', non.null(x.name, '<unknown name>'))
+    }
+    if (!is.null(syncErrMsg)) {
+        cat(syncErrMsg, '\n', sep='')
+        flush.console()
+        ## make the name of the component the message of the error
+        e <- simpleError(non.null(comp$name, '<unknown name>'))
+        class(e) <- c('syncError', class(e))
+        problemComp <- comp$name
+        signalCondition(e)
+    }
+}
+
+#' @describeIn varray.methods Convert a varray to an ordinary array
+#' @method as.array varray
+#' @description
+#' Like as.array, but refetch the underlying objects when there are inconsistencies.
+#' Can happen if new versions of the sub-arrays have been resaved before the container object itself is saved
+#' @param maxTries maximum number of retries waiting for consistency between container and content objects
+#' @param maxWaitSecs maximum wait before next retry after a failed consistency check (wait times double each iteration until hitting the max)
+#' @param waitSecs initial wait before next retry after a failed consistency check
+#' @param succeedOnTry for debugging only: simulate success on this iteration of consistency checking
+as.array.varray <- function(x, ..., fill=x$fill, maxTries=30, maxWaitSecs=60, waitSecs=1, succeedOnTry=NA) {
+    if (is.null(fill)) fill <- NA
+    rdimorder <- order(x$dimorder)
+    alongd <- rdimorder[x$along]
+    nTries <- 0
+    haveSyncError <- FALSE
+    problemComp <- character(0)
+    handleSyncError <- function(e) {
+        # cat('In handleSyncError() with error on "', conditionMessage(e), '"\n', sep='')
+        problemComp <<- conditionMessage(e)
+        haveSyncError <<- TRUE
+    }
+    while (TRUE) {
+        haveSyncError <- FALSE
+        problemComp <- character(0)
+        nTries <- nTries + 1
+        comp.data <- tryCatch(lapply(x$info, function(comp) {
+            ## TODO: fix this code to use x$env
+            if (!is.null(comp$value))
+                z <- comp$value
+            else if (is.null(comp$env.name))
+                z <- get(comp$name, pos=1)
+            else
+                z <- get(comp$name, envir=as.environment(comp$env.name))
+            ## don't replace explicit NA's with fill
+            ## if (!is.na(fill) && any(i <- is.na(z))) z[i] <- fill
+            checkCompIntegrity(comp=comp, obj=z, x.name=x$name, nTries=nTries, succeedOnTry=succeedOnTry)
+            conform(z, x$dimnames[rdimorder], along=seq(len=length(x$dim))[-alongd], fill=fill)
+        }), syncError=handleSyncError)
+        if (haveSyncError) {
+            if (nTries > maxTries)
+                stop('too many tries for syncError on varray ', non.null(x$name, '<unknown name>'))
+            cat('On try ', nTries, '; sleeping for ', waitSecs, ' seconds...\n', sep='')
+            Sys.sleep(waitSecs)
+            waitSecs <- min(waitSecs * 2, maxWaitSecs)
+            if (!is.null(x$name) && 'track' %in% .packages()) {
+                x.pos <- find(x$name, numeric=TRUE)
+                if (length(x.pos) >= 1 && track::env.is.tracked(pos=x.pos[1])) {
+                    cat('Refetching varray ', x$name, ' from tracking envir on pos ', x.pos[1], '\n')
+                    track::track.flush(list=c(x$name, problemComp), pos=x.pos[1])
+                    x <- get(x$name, pos=x.pos)
+                }
+            }
+        } else {
+            break
+        }
+    }
+    y <- abind(along=alongd, comp.data)
+    if (!all(x$dimorder == seq(length(x$dim))))
+        y <- aperm(y, order(x$dimorder))
+    if (!isTRUE(all.equal(x$dimnames[[x$along]], dimnames(y)[[x$along]])))
+        y <- conform(y, x$dimnames, along=x$along, fill=fill)
+    y
+}
+
+#- Example function for raising and catching a custom error
+tmpf <- function(x, maxIters=10) {
+    keepTrying <- FALSE
+    catchTooLow <- function(e) {
+        cat('Caught a too low error\n')
+        x <<- x + 1
+        cat('Incremented x to x=', x, '\n', sep='')
+        keepTrying <<- TRUE
+    }
+    repeat {
+        keepTrying <- FALSE
+        cat('Looping with x=', x, '\n', sep='')
+        v <- tryCatch({
+            if (x < 3) {
+                cat('Found x=', x, ' too low\n', sep='')
+                e <- simpleError('too low')
+                class(e) <- c('tooLowError', class(e))
+                signalCondition(e)
+            }
+            if (x==3)
+                x
+            else
+                stop('x=', x, ' too high')
+        },
+        tooLowError = catchTooLow)
+        if (!keepTrying)
+            break
+    }
+    v
 }
 
 #' @describeIn varray.methods Convert a varray to an ordinary matrix
@@ -511,8 +647,52 @@ tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
 
 #' @describeIn varray.methods Returns a subset of a varray objects
 #' @method [ varray
-"[.varray" <- function(x, ..., drop=TRUE) {
+#' @param compCheck should the consistency check for components be done?
+"[.varray" <- function(x, ..., drop=TRUE, maxTries=30, maxWaitSecs=60, waitSecs=1, succeedOnTry=NA, compCheck=TRUE) {
     Nidxs <- nargs() - 1 - (!missing(drop))
+    nTries <- 0
+    haveSyncError <- FALSE
+    problemComp <- character(0)
+    handleSyncError <- function(e) {
+        # cat('In handleSyncError() with error on "', conditionMessage(e), '"\n', sep='')
+        problemComp <<- conditionMessage(e)
+        haveSyncError <<- TRUE
+    }
+    while (TRUE) {
+        haveSyncError <- FALSE
+        problemComp <- character(0)
+        nTries <- nTries + 1
+        a <- tryCatch(`[.noretry.varray`(x, ..., drop=drop, compCheck=compCheck), syncError=handleSyncError)
+        if (haveSyncError) {
+            if (nTries > maxTries)
+                stop('too many tries for syncError on varray ', non.null(x$name, '<unknown name>'))
+            cat('varray sync error on try ', nTries, '; sleeping for ', waitSecs, ' seconds...\n', sep='')
+            Sys.sleep(waitSecs)
+            waitSecs <- min(waitSecs * 2, maxWaitSecs)
+            if (!is.null(x$name) && 'track' %in% .packages()) {
+                x.pos <- find(x$name, numeric=TRUE)
+                if (length(x.pos) >= 1 && track::env.is.tracked(pos=x.pos[1])) {
+                    if (!is.null(problemComp) && !exists(problemComp, where=x.pos, inherits=FALSE))
+                        problemComp <- NULL
+                    cat('flushing & refetching varray ', x$name,
+                        if (!is.null(problemComp))
+                            paste(' and component', problemComp),
+                        ' from tracking envir on pos ', x.pos[1], '\n')
+                    track::track.flush(list=c(x$name, problemComp), pos=x.pos[1])
+                    x <- get(x$name, pos=x.pos)
+                }
+            }
+        } else {
+            break
+        }
+    }
+    a
+}
+
+#' @describeIn varray.methods Returns a subset of a varray objects
+#' @method [ noretry.varray
+"[.noretry.varray" <- function(x, ..., drop=TRUE, compCheck=TRUE) {
+    Nidxs <- nargs() - 1 - (!missing(drop)) - (!missing(compCheck))
     d <- x$dim
     dn <- x$dimnames
     naidxok <- x$naidxok
@@ -538,7 +718,12 @@ tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
         ai[!idx.missing] <- lapply(dotargs[!idx.missing], eval, sys.parent())
         if (length(ai)!=length(d))
             stop("strange ... thought I had ", length(d), " index args, but don't???")
-        # put the indices in storage order and convert to integers
+        ## try again to look for empty indices, needed because of non-idempotent "..." arg handling
+        ## when this is called by [.varray()
+        j <- sapply(ai[!idx.missing], function(a) is.name(a) && as.character(a)=="")
+        if (any(j))
+            idx.missing[!idx.missing] <- j
+        ## put the indices in storage order and convert to integers
         ai <- ai[so]
         idx.missing <- idx.missing[so]
         for (j in seq(along=ai)) {
@@ -616,6 +801,8 @@ tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
                         yy <- get(x$info[[i]]$name, pos=1)
                     else
                         yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
+                    if (compCheck)
+                        checkCompIntegrity(comp=x$info[[i]], obj=yy, x.name=x$name)
                     y <- do.call('[', c(list(yy), jj, list(drop=FALSE)))
                 }
             } else {
@@ -626,6 +813,8 @@ tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
                         yy <- get(x$info[[i]]$name, pos=1)
                     else
                         yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
+                    if (compCheck)
+                        checkCompIntegrity(comp=x$info[[i]], obj=yy, x.name=x$name)
                     y1 <- do.call('[', c(list(yy), jj1, list(drop=FALSE)))
                 }
                 # we assume that the object that is result of indexing can handle NA's in indices
@@ -759,6 +948,8 @@ tail.varray <- function (x, n = 6L, addrownums = TRUE, ...)
                     yy <- get(x$info[[i]]$name, pos=1)
                 else
                     yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
+                if (compCheck)
+                    checkCompIntegrity(comp=x$info[[i]], obj=yy, x.name=x$name)
                 y <- yy[jj]
             }
             dimnames(y) <- NULL

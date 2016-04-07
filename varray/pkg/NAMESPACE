@@ -3,6 +3,7 @@
 importFrom(abind, abind, asub, adrop, 'afill<-')
 importFrom(Matrix, Matrix, rBind, cBind)
 importFrom(utils, head, tail)
+importFrom(track, env.is.tracked, track.flush)
 export(varray, conform,
        update.varray.ts, update.matrix, update.Matrix,
        add.tsdata.varray, add.data.matrix, add.data.Matrix,

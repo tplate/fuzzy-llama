@@ -1,4 +1,10 @@
-                CHANGES in varray version 1.0-15 (2015-02-05)
+                CHANGES in varray version 1.1-0 (2016-04-06)
+CHANGES
+    o   perform consistency checks when extracting data to catch cases where
+        updates to a containter and contents are not in sync, and incorrect
+	dimnames and index mappings for a component are stored in the container.
+
+	     	CHANGES in varray version 1.0-15 (2015-02-05)
 CHANGES
     o   matrix indexing with character vectors now works
     o   matrix indexing works for data frames and lists too

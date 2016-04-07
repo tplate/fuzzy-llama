@@ -193,12 +193,16 @@ update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y
             } else {
                 this.datar <- aperm(this.data, rdimorder)
             }
+            comp.ver <- attr(this.datar, 'comp.ver')
+            comp.ver <- if (is.null(comp.ver)) 1 else comp.ver + 1
+            attr(this.datar, 'comp.ver') <- comp.ver
             j <- match(this.new.scn, all.scn.u)
             va$info[[j]]$name <- this.new.scn
             va$info[[j]]$dim <- dim(this.datar)
             va$info[[j]]$dimnames <- dimnames(this.datar)
             va$info[[j]]$env.name <- env.name
             va$info[[j]]$naidxok <- naidxok
+            va$info[[j]]$comp.ver <- comp.ver
             # will fix 'map' at the end
             assign(this.new.scn, envir=envir, value=this.datar)
         }
@@ -255,6 +259,11 @@ update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y
             }
             # load values into the component
             afill(comp.data) <- this.datar
+            # maintain the version of the component
+            comp.ver <- attr(comp.data, 'comp.ver')
+            comp.ver <- if (is.null(comp.ver)) 1 else comp.ver + 1
+            attr(comp.data, 'comp.ver') <- comp.ver
+            va$info[[this.i]]$comp.ver <- comp.ver
             # and save the component
             assign(va$info[[this.i]]$name, envir=env, value=comp.data, inherits=FALSE)
         }
