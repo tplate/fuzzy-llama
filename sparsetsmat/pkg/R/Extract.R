@@ -9,8 +9,8 @@
 #' @param x a sparsetsmat object
 #'
 #' @param i the row indices, can be numeric, character, Date
-#' or POSIXct, or a 2-column matrix or dataframe for matrix
-#' indexing.
+#' or POSIXct, or a 2-column matrix or dataframe (or list)
+#' for matrix indexing.
 #'
 #' @param j the j indices, can be numeric, character or NULL
 #' in the case of matrix indexing
@@ -106,9 +106,22 @@
         mat.ind <- TRUE
         if (nIdxs != 1)
             stop('require just one index with matrix indexing')
+    } else if (is.list(i) && length(i)==2) {
+        # list-style matrix indexing
+        if (!missing(j))
+            stop('cannot supply j when using matrix indexing')
+        if (length(i)!=2)
+            stop('need just 2 columns in i for matrix indexing')
+        j <- i[[2]]
+        i <- i[[1]]
+        if (length(i) != length(j))
+            stop('both vectors in the list must be the same length for list-delivered matrix indexing (found ', length(i), ' & ', length(j), ')')
+        mat.ind <- TRUE
+        if (nIdxs != 1)
+            stop('require just one index with matrix indexing')
     } else {
         if (nIdxs != 2 & nIdxs != 0)
-            stop('require zero or both indices (i & j)')
+            stop('require neither or both indices (i & j)')
     }
     if (missing(j))
         j <- seq(along=x$ids)
