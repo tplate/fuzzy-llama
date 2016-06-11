@@ -1,3 +1,23 @@
+#' Replace.sparsetsmat
+#'
+#' Replace an ordinary sub-matrix or values in a sparsetsmat object.
+#'
+#' @rdname repl.sparsetsmat
+#'
+#' @method [<- sparsetsmat
+#' @param x a sparsetsmat object
+#'
+#' @param i the row indices, can be numeric, character, Date
+#' or POSIXct, or a 2-column matrix or dataframe (or list)
+#' for matrix indexing.
+#'
+#' @param j the j indices, can be numeric, character or NULL
+#' in the case of matrix indexing
+#'
+#' @param ... not used
+#' @param value the replacement values
+#' @param verbose if TRUE, print informative messages
+#'
 '[<-.sparsetsmat' <- function(x, i, j, ..., verbose=getOption('sparsetsmat.verbose', FALSE), value) {
     # verbose <- FALSE
     # Convert square i,j indexing to matrix indexing.

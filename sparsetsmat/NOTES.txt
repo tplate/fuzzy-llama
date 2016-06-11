@@ -18,3 +18,24 @@ R CMD check --no-manual sparsetsmat_1.0-0.tar.gz -l ~/site-library
 
 > (a + b +
 + c + d)
+
+
+********** potential solution to having generic lookup.arr() defined in multiple packages:
+http://stackoverflow.com/questions/36865142/where-and-how-to-define-a-generic-function-if-multiple-packages-are-used
+Here is the solution:
+
+As I understand, an attached package has three environments (e.g. "package:Xantrex", "namespace:Xantrex" and "imports:Xantrex") the different meaning of these is explained in detail here: Advanced R.
+
+Now, we have to test whether the generic function init() is already there and if not we have to initialize it in the right environment. The following code will do that for us.
+
+.onAttach <- function(libname, pkgname)
+{
+  if(!exists("init",mode = "function"))
+    eval(expression(init <- function(inst,...) UseMethod("init")),envir = as.environment("package:Xantrex"))
+}
+
+The .onAttach-hook, is necessary to guarantee that the different namespaces are initialized. In contrast to that the .onLoad-hook, would be too early. Mention that the expression is evaluated in the package:Xantrex environment, so the generic becomes visible in the search path.
+
+Next to that take care, that your NAMESPACE file will export(init.xantrex) and NOT S3method(init,xantrex). The latter will result an error, because the generic for the method init.xantrex()is not present while building the package.
+
+Best! Martin

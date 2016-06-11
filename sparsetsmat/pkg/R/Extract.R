@@ -1,6 +1,6 @@
 #' Extract.sparsetsmat
 #'
-#' Extract an ordinary sub-matrix or value from a sparsetsmat object.
+#' Extract an ordinary sub-matrix or values from a sparsetsmat object.
 #'
 #' @rdname sub.sparsetsmat
 #'
@@ -426,8 +426,23 @@ stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
     }
     val.idx
 }
-#' @describeIn Extract.sparsetsmat
+#' sparsetsmat method for generic lookup.arr
 #' @method lookup.arr sparsetsmat
-#' The lookup.arr.sparsetsmat method is an alias for the standard extract method
+#'
+#' @note The lookup.arr.sparsetsmat method is an alias for the standard extract method
+#'
+#' @param x a sparsetsmat object
+#' @param i a matrix index
+#' @param ... unused
+#' @param drop should dimensions be dropped from a vector result
+
 lookup.arr.sparsetsmat <- function(x, i, ..., drop=TRUE) `[.sparsetsmat`(x=x, i=i, ..., drop=drop)
+
+#' Lookup values in an array
+#'
+#' @param x a matrix-like object
+#' @param i a matrix index
+#' @param ... additional arguments to pass to methods
+
+lookup.arr <- function(x, i, ...) UseMethod('lookup.arr')
 
