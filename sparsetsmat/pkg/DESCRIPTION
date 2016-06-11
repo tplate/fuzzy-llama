@@ -1,8 +1,8 @@
 Package: sparsetsmat
 Type: Package
 Title: Efficient storage for persistent sparse time-series matrices
-Version: 1.0-5
-Date: 2015-05-07
+Version: 1.1-0
+Date: 2016-06-10
 Author: Tony Plate
 Maintainer: Tony Plate <tplate@acm.org>
 Description: Efficient storage for persistent sparse

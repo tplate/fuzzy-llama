@@ -166,7 +166,7 @@
     } else if (   (is.numeric(i) | is.integer(i))
         && !(inherits(i, 'Date') | inherits(i, 'POSIXct'))
         && (inherits(x$dates, 'Date') | inherits(x$dates, 'POSIXct'))) {
-        if (!is.integer(i) & any(abs(i - round(i)) > 1e-4))
+        if (!is.integer(i) && any(!is.na(i) & abs(i - round(i)) > 1e-4))
             stop('non-wholenumber numeric i index with date indices on x')
         if (isTRUE(any(i < 0))) {
             # handle -ve indices
@@ -426,3 +426,8 @@ stsm_xt_mir <- function(i.idx, j.idx, dates, id.idx, id.noc, backfill) {
     }
     val.idx
 }
+#' @describeIn Extract.sparsetsmat
+#' @method lookup.arr sparsetsmat
+#' The lookup.arr.sparsetsmat method is an alias for the standard extract method
+lookup.arr.sparsetsmat <- function(x, i, ..., drop=TRUE) `[.sparsetsmat`(x=x, i=i, ..., drop=drop)
+
