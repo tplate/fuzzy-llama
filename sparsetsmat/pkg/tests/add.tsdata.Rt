@@ -11,40 +11,40 @@
 > all.equal(m3.tsm, add.tsdata(sparsetsmat(m3.mat[ii,]), sparsetsmat(m3.mat[-ii,])))
 [1] TRUE
 > ii <- c(2,5:13,19)
-> all.equal(m3.tsm, add.tsdata(sparsetsmat(m3.mat[ii,]), sparsetsmat(m3.mat[-ii,])))
+> all.equal(m3.tsm, add.tsdata(sparsetsmat(m3.mat[ii,]), sparsetsmat(m3.mat[-ii,]), fullmask=FALSE))
 [1] TRUE
-> all.equal(m3.tsm, add.tsdata(sparsetsmat(m3.mat[-ii,]), sparsetsmat(m3.mat[ii,])))
+> all.equal(m3.tsm, add.tsdata(sparsetsmat(m3.mat[-ii,]), sparsetsmat(m3.mat[ii,]), fullmask=FALSE))
 [1] TRUE
-> 
+>
 > # break into 4 parts and recombine
 > jj <- 5:14
-> x <- add.tsdata(add.tsdata(add.tsdata(sparsetsmat(m3.mat[ii,jj]), sparsetsmat(m3.mat[-ii,-jj])), sparsetsmat(m3.mat[ii,-jj])), sparsetsmat(m3.mat[-ii,jj]))
+> x <- add.tsdata(add.tsdata(add.tsdata(sparsetsmat(m3.mat[ii,jj]), sparsetsmat(m3.mat[-ii,-jj])), sparsetsmat(m3.mat[ii,-jj]), fullmask=FALSE), sparsetsmat(m3.mat[-ii,jj]), fullmask=FALSE)
 > # the recombination has ids in a different order, so need to sort the cols to compare
 > all.equal(as.matrix(m3.mat)[,order(colnames(m3.mat))], as.matrix(x)[,order(colnames(x))])
 [1] TRUE
-> 
+>
 > m3s.tsm <- sparsetsmat(m3.mat, sort.ids=T)
-> xs <- add.tsdata(add.tsdata(add.tsdata(sparsetsmat(m3.mat[ii,jj]), sort.ids=TRUE, sparsetsmat(m3.mat[-ii,-jj])), sparsetsmat(m3.mat[ii,-jj])), sparsetsmat(m3.mat[-ii,jj]))
+> xs <- add.tsdata(add.tsdata(add.tsdata(sparsetsmat(m3.mat[ii,jj]), sort.ids=TRUE, sparsetsmat(m3.mat[-ii,-jj]), fullmask=FALSE), sparsetsmat(m3.mat[ii,-jj]), fullmask=FALSE), sparsetsmat(m3.mat[-ii,jj]), fullmask=FALSE)
 > all.equal(xs, m3s.tsm)
 [1] TRUE
-> 
+>
 > options(error=function(x) NULL)
 > set.seed(1)
 > m7.mat <- sparsetsmat:::locf.default(matrix(replace(rep(as.character(NA), 35), sample(7*5, 11), c(letters, LETTERS)[1:11]), nrow=7, ncol=5, dimnames=list(as.character(seq(as.Date('2001-01-01'), len=7, by='3 days')), paste('V', 1:5, sep=''))))
 > m7.tsm <- sparsetsmat(m7.mat)
 > as.matrix(m7.tsm)
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-10 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
-> 
+>
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-14'=c(V1='e', V2='b', V3='z', V4='g', V5='h'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
@@ -52,8 +52,8 @@
 2001-01-16 "k" "b" "z" "f" "h"
 2001-01-19 "e" "b" "z" "g" "h"
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-14'=c(V1='e', V2='b', V3='z', V4='g', V5='y'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
@@ -61,8 +61,8 @@
 2001-01-16 "k" "b" "z" "f" "y"
 2001-01-19 "e" "b" "z" "g" "y"
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-14'=c(V1='e', V2='b', V3='c', V4='g', V5='h'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
@@ -70,8 +70,8 @@
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V1='e', V2='b', V3='z', V4='g', V5='h'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
@@ -79,77 +79,77 @@
 2001-01-19 "e" "b" "c" "g" "h"
 2001-01-20 "e" "b" "z" "g" "h"
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V1='e', V2='b', V3='z', V4='g', V5='y'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
 2001-01-20 "e" "b" "z" "g" "y"
-> 
+>
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V1='e', V2='b', V3='c', V4='g', V5='h'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-10 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
-> 
+>
 > # missing columns allow values to propagate forward
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V2='b', V4='d'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
 2001-01-20 "e" "b" "c" "d" "h"
-> 
+>
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V2='b', V4=NA))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
 2001-01-20 "e" "b" "c" NA  "h"
-> 
+>
 > # but explicit NA values are remembered
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V1='e', V2=NA, V3='c', V4='g', V5=NA))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
-2001-01-20 "e" NA  "c" "g" NA 
-> 
+2001-01-20 "e" NA  "c" "g" NA
+>
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V1='e', V2=NA, V3='c', V4='g', V5=NA), '2001-01-21'=c(V1='e', V2=NA, V3='c', V4='g', V5=NA))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
-2001-01-20 "e" NA  "c" "g" NA 
+2001-01-20 "e" NA  "c" "g" NA
 > as.matrix(add.tsdata(m7.tsm, rbind('2001-01-20'=c(V1='e', V2=NA, V3='c', V4='g', V5=NA), '2001-01-21'=c(V1='e', V2=NA, V3='c', V4='g', V5='k'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 "e" "b" "c" "g" "h"
-2001-01-20 "e" NA  "c" "g" NA 
+2001-01-20 "e" NA  "c" "g" NA
 2001-01-21 "e" NA  "c" "g" "k"
-> 
+>
 > # New data overwrites some values in old data
 > m8.tsm <- m7.tsm
 > m8.tsm['2001-01-19','V1'] <- NA
@@ -158,40 +158,40 @@ Adding no new rows in data frame version
 > m8.tsm['2001-01-19','V2'] <- 'B'
 Adding 1 new rows in data frame version
 > as.matrix(m8.tsm)
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 NA  "B" "c" "g" "h"
 > as.matrix(add.tsdata(m8.tsm, rbind('2001-01-19'=c(V1='e', V2=NA, V3='d', V5=NA), '2001-01-21'=c(V1='e', V2=NA, V3='c', V5=NA))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
-2001-01-19 "e" NA  "d" "g" NA 
-2001-01-21 "e" NA  "c" "g" NA 
-> 
+2001-01-19 "e" NA  "d" "g" NA
+2001-01-21 "e" NA  "c" "g" NA
+>
 > as.matrix(add.tsdata(m8.tsm, rbind('2001-01-16'=c(V1='e', V2=NA, V3='d', V4=NA, V5=NA)), shadow=T))
-           V1  V2  V3  V4 V5 
-2001-01-01 NA  NA  NA  NA NA 
+           V1  V2  V3  V4 V5
+2001-01-01 NA  NA  NA  NA NA
 2001-01-04 "j" NA  NA  NA "d"
 2001-01-07 "j" "a" "i" NA "d"
 2001-01-13 "j" "a" "c" NA "h"
-2001-01-16 "e" NA  "d" NA NA 
+2001-01-16 "e" NA  "d" NA NA
 > as.matrix(add.tsdata(m8.tsm, rbind('2001-01-16'=c(V1='e', V2=NA, V3='d', V4=NA, V5=NA))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "a" "c" NA  "h"
-2001-01-16 "e" NA  "d" NA  NA 
-2001-01-19 NA  "B" "d" "g" NA 
-> 
-> 
+2001-01-16 "e" NA  "d" NA  NA
+2001-01-19 NA  "B" "d" "g" NA
+>
+>
 > m9.tsm <- m7.tsm
 > m9.tsm['2001-01-19','V1'] <- NA
 Changing 1 existing entries
@@ -199,11 +199,39 @@ Adding no new rows in data frame version
 > m9.tsm['2001-01-13','V2'] <- NA
 Adding 1 new rows in data frame version
 > as.matrix(add.tsdata(m9.tsm, rbind('2001-01-13'=c(V2='z'))))
-           V1  V2  V3  V4  V5 
-2001-01-01 NA  NA  NA  NA  NA 
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
 2001-01-04 "j" NA  NA  NA  "d"
 2001-01-07 "j" "a" "i" NA  "d"
 2001-01-13 "j" "z" "c" NA  "h"
 2001-01-16 "k" "b" "c" "f" "h"
 2001-01-19 NA  "b" "c" "g" "h"
-> 
+>
+> # case where the original has changes during the period of the new one, which does not have changes
+> m10.tsm <- m7.tsm
+> m10.tsm['2001-01-16','V2'] <- NA
+Changing 1 existing entries
+Adding no new rows in data frame version
+> m10.tsm['2001-01-19','V2'] <- 'b'
+Adding 1 new rows in data frame version
+> as.matrix(m10.tsm)
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "j" "a" "c" NA  "h"
+2001-01-16 "k" NA  "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+> (n10.m <- rbind('2001-01-13'=c(V1='e', V2='a'), '2001-01-16'=c(V1='e', V2='a')))
+           V1  V2
+2001-01-13 "e" "a"
+2001-01-16 "e" "a"
+> as.matrix(add.tsdata(m10.tsm, n10.m))
+           V1  V2  V3  V4  V5
+2001-01-01 NA  NA  NA  NA  NA
+2001-01-04 "j" NA  NA  NA  "d"
+2001-01-07 "j" "a" "i" NA  "d"
+2001-01-13 "e" "a" "c" NA  "h"
+2001-01-16 "e" "a" "c" "f" "h"
+2001-01-19 "e" "b" "c" "g" "h"
+>

@@ -33,6 +33,7 @@ add.tsdata.default <- function(x, ..., pos=NULL) {
 #' @param sort.ids Same as for \code{sparsetsmat}.
 #' @param drop.unneeded.dates Same as for \code{sparsetsmat}.
 #' @param shadow If TRUE, drop all data in x that is preceeded by data in newdata (i.e., newdata casts a shadow over x)
+#' @param fullmask If TRUE, drop all data in x that is overlapped by the rectangle of data in newdata (i.e., newdata casts a shadow over x)
 #' @param direct.df If TRUE, treat newdata as a standard
 #' data.frame representation of a sparse tsmat object; i.e.,
 #' dates are in column 1, ids in column 2, and values in
@@ -50,6 +51,7 @@ add.tsdata.sparsetsmat <- function(x,
                                    sort.ids=non.null(x$sort.ids, FALSE),
                                    drop.unneeded.dates=TRUE,
                                    shadow=FALSE,
+                                   fullmask=TRUE,
                                    direct.df=TRUE) {
     x.is.named <- FALSE
     if (is.character(x) && length(x)==1) {
@@ -73,12 +75,16 @@ add.tsdata.sparsetsmat <- function(x,
         } else {
             new.tsm <- sparsetsmat(newdata, ..., sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates)
             new.df <- as.data.frame(new.tsm)
+            new.ids <- unique(new.df[[2]])
         }
+        new.daterange <- range(newdata[[1]])
         if (any(colnames(new.df) != colnames(x.df)))
             colnames(new.df) <- colnames(x.df)
     } else if (inherits(newdata, 'sparsetsmat')) {
         new.tsm <- newdata
         new.df <- as.data.frame(newdata)
+        new.ids <- unique(new.df[[2]])
+        new.daterange <- range(new.df[[1]])
     } else if (is.matrix(newdata)) {
         if (is.null(rownames(newdata)))
             stop('must have rownames on newdata')
@@ -90,6 +96,7 @@ add.tsdata.sparsetsmat <- function(x,
             new.d <- as.POSIXct(rownames(newdata), tz='UTC')
         else
             new.d <- as.numeric(rownames(newdata))
+        new.daterange <- range(new.d)
         if (min(new.d) > max(x$dates)) {
             # Try to eliminate the new data that is unchanged.
             # This is a common operation, so try to do it efficiently.
@@ -124,6 +131,7 @@ add.tsdata.sparsetsmat <- function(x,
             return(x)
         new.tsm <- sparsetsmat(newdata, ...)
         new.df <- as.data.frame(new.tsm)
+        new.ids <- unique(new.df[[2]])
     } else {
         stop('newdata must be data.frame, sparsetsmat, or matrix')
     }
@@ -185,15 +193,27 @@ add.tsdata.sparsetsmat <- function(x,
             }
         }
     } else if (!shadow && min(new.df$dates) <= max(x$dates)) {
-        # only remove direct conflicts (elements of new.df take priority over those of x.df)
-        # can assume existence of x.df, x (tsm) and new.df
-        new.ids.u <- unique(new.df$ids)
-        new.dates.u <- as.numeric(unique(new.df$dates))
-        new.ii <- match(as.numeric(new.df$dates), new.dates.u) * length(new.ids.u) + match(new.df$ids, new.ids.u)
-        x.ii <- match(as.numeric(x.df$dates), new.dates.u) * length(new.ids.u) + match(x.df$ids, new.ids.u)
-        x.keep <- !is.element(x.ii, new.ii)
-        if (!all(x.keep))
-            x.df <- x.df[x.keep, , drop=FALSE]
+        if (fullmask) {
+            ## remove elements of x.df that are in the date/id range of newdata
+            ## can assume existence of x.df, x (tsm) and new.df
+            ii <- is.element(x.df[[2]], new.ids)
+            if (class(x.df[[1]])[1] != class(new.daterange)[1])
+                warning('different classes on x and newdata: ',class(x.df[[1]])[1], ' & ', class(new.daterange)[1])
+            jj <- x.df[[1]][ii] >= new.daterange[1] & x.df[[1]][ii] <= new.daterange[2]
+            x.rem <- which(ii)[which(jj)]
+            if (length(x.rem))
+                x.df <- x.df[-x.rem, , drop=FALSE]
+        } else {
+            ## remove direct conflicts (elements of new.df take priority over those of x.df)
+            ## can assume existence of x.df, x (tsm) and new.df
+            new.ids.u <- unique(new.df$ids)
+            new.dates.u <- as.numeric(unique(new.df$dates))
+            new.ii <- match(as.numeric(new.df$dates), new.dates.u) * length(new.ids.u) + match(new.df$ids, new.ids.u)
+            x.ii <- match(as.numeric(x.df$dates), new.dates.u) * length(new.ids.u) + match(x.df$ids, new.ids.u)
+            x.keep <- !is.element(x.ii, new.ii)
+            if (!all(x.keep))
+                x.df <- x.df[x.keep, , drop=FALSE]
+        }
     }
     x <- sparsetsmat(rbind(x.df, new.df), ids=all.ids, backfill=x$backfill, sort.ids=sort.ids, drop.unneeded.dates=drop.unneeded.dates)
     if (x.is.named)
