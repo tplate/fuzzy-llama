@@ -26,7 +26,8 @@ library.local <- function(package, character.only=FALSE,
             cat("package ", package, ' is already loaded\n')
         return(.packages())
     }
-    if (!is.element(package, .packages(lib.loc=lib.loc, all.available=TRUE)))
+    # .packages(all.available=TRUE) can be REALLY slow for network drives
+    if (FALSE && !is.element(package, .packages(lib.loc=lib.loc, all.available=TRUE)))
         stop("package ", package, ' is not found anywhere with lib.loc=', paste(non.null(lib.loc, 'NULL'), collapse=';'),
              if (!character.only && is.name(package.orig))
              paste(" (if '", as.character(package.orig), "' is a var, do library.local(",

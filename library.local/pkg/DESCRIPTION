@@ -1,8 +1,8 @@
 Package: library.local
 Type: Package
 Title: Make a local copy of a package and load it
-Version: 1.7-0
-Date: 2015-12-28
+Version: 1.7-1
+Date: 2018-03-22
 Author: Tony Plate <tplate@acm.org>
 Maintainer: Tony Plate <tplate@acm.org>
 Depends: tools
