@@ -76,9 +76,10 @@ library.local <- function(package, character.only=FALSE,
     }
     local.lib.locs <- setdiff(local.lib.locs, '')
     local.lib.locs <- gsub('[/\\\\]$', '', local.lib.locs)
-    local.lib.locs <- local.lib.locs[order(basename(local.lib.locs)=='R_local_libs', decreasing=TRUE)]
+    r_local_libs <- gsub('.', '_', paste0('R_local_libs_', version$major, '_', version.minor), fixed=TRUE)
+    local.lib.locs <- local.lib.locs[order(basename(local.lib.locs)==r_local_libs, decreasing=TRUE)]
     local.lib.loc <- NULL
-    # find the first writable component of local.lib.loc, and create 'R_local_libs' there
+    # find the first writable component of local.lib.loc, and create r_local_libs there
     for (dir in local.lib.locs) {
         if (isTRUE(file.info(dir)$isdir) && isTRUE(as.logical(file.access(dir, 4)==0))) {
             local.lib.loc <- dir
@@ -89,8 +90,8 @@ library.local <- function(package, character.only=FALSE,
     }
     if (is.null(local.lib.loc))
         stop('cound not find any writable temp directories, tried ', paste(local.lib.locs, collapse=';'))
-    if (basename(local.lib.loc) != 'R_local_libs') {
-        local.lib.loc <- file.path(local.lib.loc, 'R_local_libs')
+    if (basename(local.lib.loc) != r_local_libs) {
+        local.lib.loc <- file.path(local.lib.loc, r_local_libs)
         if (!file.exists(local.lib.loc))
             dir.create(local.lib.loc, recursive=TRUE)
     }
@@ -433,10 +434,11 @@ library.local.clean <- function(older.than=NULL,
         stop('ended up with a NA value for older.than')
     local.lib.locs <- unique(setdiff(local.lib.locs, ''))
     local.lib.locs <- gsub('[/\\\\]$', '', local.lib.locs)
-    local.lib.locs <- local.lib.locs[order(basename(local.lib.locs)=='R_local_libs', decreasing=TRUE)]
+    r_local_libs <- gsub('.', '_', paste0('R_local_libs_', version$major, '_', version.minor), fixed=TRUE)
+    local.lib.locs <- local.lib.locs[order(basename(local.lib.locs)==r_local_libs, decreasing=TRUE)]
     for (dir in local.lib.locs) {
-        if (basename(dir) != 'R_local_libs')
-            dir <- file.path(dir, 'R_local_libs')
+        if (basename(dir) != r_local_libs)
+            dir <- file.path(dir, r_local_libs)
         # just work in writable component of local.lib.locs
         if (file.exists(dir) && isTRUE(file.info(dir)$isdir) && isTRUE(as.logical(file.access(dir, 4)==0))) {
             pkg.paths <- Sys.glob(file.path(dir, '*', '*'))
